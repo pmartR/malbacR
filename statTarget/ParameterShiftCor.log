@@ -1,0 +1,7 @@
+"parameter" "value"
+"Frule" "0.8"
+"MLmethod" "Combat"
+"imputeM" "KNN"
+"par.prior" "TRUE"
+"mod.covariates" "FALSE"
+"batch.Num" "No."

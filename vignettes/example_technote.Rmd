@@ -1,0 +1,307 @@
+---
+title: 'malbacR: Example'
+author: "Damon Leach, Kelly Stratton, Lisa Bramer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+This outline demonstrates the functionality and use of the `malbacR` package. Within this package, there are four datasets: `pmart_amide`, `pmart_mix`,`pmart_amideFilt`, and `pmart_mixFilt`. The first two are obtained from other packages `WaveICA2.0` and `cmrn` respectively that have dealt with batch corrections. The second two packages are simply filtered versions of the first two packages that need no additional data manipulation for batch correction to successfully run. First this outline, we work with the unfiltered datasets.
+
+First we load in the necessary libraries which is the `malbacR` package itself and `pmartR` which `malbacR` works with compatibly.
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(message = FALSE)
+```
+
+```{r}
+library(malbacR)
+library(pmartR)
+library(patchwork)
+library(ggplot2)
+```
+
+## Dataset 1: Amide Data
+
+The first data set in `malbacR`, `pmart_amide`, is the Amide data set originally found in the package `WaveICA2.0`. This metabolomics dataset was ran in three batches. In this random subset of this dataset, there are 500 molecules and 642 samples. This dataset contains information about the samples regarding batch, group, Quality Control (QC) samples, and injection order. Using this information, we can run batch correction on the data using the following methods: range scaling, power scaling, pareto scaling, ComBat, EigenMS, QC-RLSC TIGER, and WaveICA2.0. As there is no e_meta information for negative controls or internal standards, NOMIS and RUV-random cannot be run.
+
+### Load in the Data
+
+A `pmartR` friendly version of the Amide data is already implemented within `malbacR`. Therefore, we simply need to load the data.
+
+```{r}
+data(pmart_amide)
+```
+
+Before running batch correction, we need to clean the data by log2 transforming the abundance values, setting a group designation with `group` as the `main_effects` and `batch` as the `batch_id`, and normalizing the data. All of this is done using the functions `edata_transform`, `group_designation`, and `normalize_global` respectively within `pmartR`.
+
+```{r}
+pmart_amide <- edata_transform(pmart_amide,"log2")
+pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
+pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
+                                apply_norm = TRUE,backtransform = TRUE)
+```
+
+### Run Batch Correction Methods
+
+##### Scaling Methods
+
+To run batch effect correction using range, power, and pareto scaling, the function is `bc_range`, `bc_power`, and `bc_pareto` respectively. All three of these functions simply simply take the parameter `omicsData` which is the S3 data object that is compatible within `pmartR`.
+
+```{r}
+# range scaling
+amide_range <- bc_range(omicsData = pmart_amide)
+
+# power scaling
+amide_power <- bc_power(omicsData = pmart_amide)
+
+# pareto scaling
+amide_pareto <- bc_pareto(omicsData = pmart_amide)
+```
+
+##### QC-Based Methods
+
+Some methods rely on Quality Control (QC) sample information including TIGER, QC-RLSC, and SERRF. To run TIGER (Technical variation elImination with ensemble learninG architEctuRe), the function is `bc_tiger` and uses the following parameters: `omicsData`, `sampletype_cname` (a column in `f_data` that specifies which sample is QC sample or not), `test_val` (the value in `sampletype_cname` that specifies a QC sample), and `injection_cname` (the column in `f_data` that specifies the injection order).
+
+TIGER requires that there be at least one sample from the QC samples to have complete data for every molecule and at least one sample from the non-QC samples to have complete data from every molecule. For this reason, we include within `malbacR` a function: `tiger_filter` that finds the combination of a QC and a non-QC sample that has the the fewest number of missing molecules to determine how many will need to be removed. Using an additional function `apply_tigerFilt`, we apply that filter  and obtain an S3 object that is capable of working within the `pmartR` and `malbacR` framework. Although this subset of data is already capable of undergoing TIGER batch correction as there is at least one QC sample and at least one non-QC sample that has no missing molecules, we show how these functions would work in general.
+
+```{r}
+tigerFilt <- tiger_filter(pmart_amide,sampletype_cname = "group",test_val = "QC")
+pmart_amideFilt <- apply_tigerFilt(tigerFilt,pmart_amide)
+amide_tiger <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
+                        test_val = "QC",injection_cname = "Injection_order")
+```
+
+QC-RLSC (Quality Control - Robust Loess Signal Correction) can be ran using `bc_qcrlsc` which takes on the parameters `omicsData`, `block_cname` (a column in `f_data` that specifies which column contains batch information), `qc_cname` (a column in in `f_data` that specifies which sample is a QC sample or not), `qc_val` (the value in `qc_cname` that specifies a QC sample), and `order_cname` (a column in `f_data` taht specifies the run order of the samples). Additionally, the user can specify the `missing_thresh` (the minimum proportion of observed biomolecules for each QC samples), the `rsd_thresh`, and whether the user wants to `backtransform` the data or not.
+
+```{r}
+amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
+                          qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
+                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
+```
+
+The final QC method in `malbacR` is SERRF (Systematic Error Removal using Random Forest) which uses the function `bc_serrf`. This function utilizes the parameters `omicsData`, `sampletype_cname`, and `test_val` which have the same meanings as those within `bc_tiger`.
+
+One thing to note that SERRF is a method that requires complete observations. This means we either have to remove molecules with missing values or impute them using an Expectation Maximization algorithm. Although there are reasons to avoid imputation, we acknowledge that sometimes it is necessary. Therefore, we include an `imputation` function within `malbacR` that obtains the `e_data` that has been imputed. To then officially apply this to the `pmartR` S3 object, the user runs `apply_imputation`, similar to the procedure of `tiger_filter` and `apply_tigerFilt`.
+
+```{r}
+impObj <- imputation(omicsData = pmart_amide)
+amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
+```
+
+```{r}
+amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC")
+```
+
+##### Other Methods
+
+There are other methods that do not utilize a scaling approach or use QC samples. One method is ComBat. ComBat can be ran using `bc_combat` taking on the parameter `omicsData`. However, for this function to run, the user must have normalized the data using `normalize_global` and added a batch id using `group_designation` within `pmartR`. Further, there is an optional parameter `use_groups` that defaults to False. If set to true, ComBat will be run using both batch and group information rather than just batch information.
+
+```{r}
+# combat batch correction
+amide_combat <- bc_combat(omicsData = pmart_amide, use_groups = FALSE)
+```
+
+EigenMS uses the function `bc_eigenMS` and takes the parameter `omicsData`. While this is the only parameter, it is also required that the the S3 object has undergone group designation using the function `group_designation` in `pmartR`. However, only a `main_effects` for the group information needs to be addressed and no `batch_id` is necessary. This is in contrast with `bc_combat` which requires `batch_id`.
+
+```{r}
+amide_eigen <- bc_eigenMS(omicsData = pmart_amide)
+```
+
+The final method we demonstrate using the Amide data is WaveICA2.0 which uses the function `bc_waveica` and incorporates the parameters: `omicsData`, `injection_cname` (column of `f_data` with injection order information), as well as `alpha` (tradeoff value between independence of the samples and those of the variables in ICA), `cutoff` (threshold of variation explained by the injection order for independent components), and `K` (the maximal component that ICA decomposes). The defaults for `alpha`, `cutoff`, and `K` are 0, 0.1, and 10 respectively. Like SERRF, WaveICA2.0 requires complete observations so we use the imputed dataset that has already been created.
+
+```{r, results = 'hide'}
+amide_wave <- bc_waveica(omicsData = amide_imp, injection_cname = "Injection_order",
+                         alpha = 0, cutoff = 0.1, K = 10)
+```
+
+### Amide: Data Visualization
+
+After obtaining all the different batch corrected datasets, we can plot the PPCA to see if they are successfully returning batch corrected data. We set the `group_designation` to use our batch information as the `main_effects` so as to color the data by batch. All of this code is run using functions from `pmartR` demonstrating the utility between the two packages. A dataset with batch effects will tend to produce a PPCA with distinct clusters for each batch. A good batch effect correction method will reduce those distinct clusters. Using that logic, ComBat, WaveICA2.0, and SERRF perform the best within this dataset.
+
+```{r, out.width = "33%"}
+pmart_amide <- group_designation(pmart_amide,main_effects = "batch")
+amide_range <- group_designation(amide_range,main_effects = "batch")
+amide_power <- group_designation(amide_power,main_effects = "batch")
+amide_pareto <- group_designation(amide_pareto,main_effects = "batch")
+amide_tiger <- group_designation(amide_tiger,main_effects = "batch")
+amide_qcrlsc <- group_designation(amide_qcrlsc,main_effects = "batch")
+amide_combat <- group_designation(amide_combat,main_effects = "batch")
+amide_wave <- group_designation(amide_wave,main_effects = "batch")
+amide_serrf <- group_designation(amide_serrf,main_effects = "batch")
+
+
+p1 <- plot(dim_reduction(omicsData = pmart_amide))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Unadjusted")
+p2 <- plot(dim_reduction(omicsData = amide_range))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Range")
+p3 <- plot(dim_reduction(omicsData = amide_power))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Power")
+p4 <- plot(dim_reduction(omicsData = amide_pareto))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Pareto")
+p5 <- plot(dim_reduction(omicsData = amide_tiger))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: TIGER")
+p6 <- plot(dim_reduction(omicsData = amide_qcrlsc))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: QC-RLSC")
+p7 <- plot(dim_reduction(omicsData = amide_combat))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: ComBat")
+p8 <- plot(dim_reduction(omicsData = amide_wave))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: WaveICA2.0")
+p9 <- plot(dim_reduction(omicsData = amide_serrf))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: SERRF")
+
+
+p1;p2;p3;p4;p5;p6;p7;p8;p9
+```
+
+```{r,include = FALSE, eval = FALSE}
+# unadjusted
+pmart_amide_res <- dim_reduction(omicsData = pmart_amide)
+amide1 <- data.frame(sample = pmart_amide_res$SampleID, Batch = attr(pmart_amide_res,"group_DF")$Group,
+           pc1 = pmart_amide_res$PC1, pc2 = pmart_amide_res$PC2) %>%
+  ggplot(aes(x = pc1, y = pc2,color = Batch)) + 
+  geom_point(alpha = 0.5,size = 4) + 
+  theme_bw() + 
+  labs(x = paste0("PC1 (R^2 = ",round(attr(pmart_amide_res,"R2")[1],3),")"),
+       y = paste0("PC1 (R^2 = ",round(attr(pmart_amide_res,"R2")[2],3),")"),
+       title = "Amide: Unadjusted")
+# combat
+amide_combat_res <- dim_reduction(omicsData = amide_combat)
+amide2 <- data.frame(sample = amide_combat_res$SampleID, Batch = attr(amide_combat_res,"group_DF")$Group,
+           pc1 = amide_combat_res$PC1, pc2 = amide_combat_res$PC2) %>%
+  ggplot(aes(x = pc1, y = pc2,color = Batch)) + 
+  geom_point(alpha = 0.5,size = 4) + 
+  theme_bw() + 
+  labs(x = paste0("PC1 (R^2 = ",round(attr(amide_combat_res,"R2")[1],3),")"),
+       y = paste0("PC1 (R^2 = ",round(attr(amide_combat_res,"R2")[2],3),")"),
+       title = "Amide: ComBat")
+# waveica
+amide_wave_res <- dim_reduction(omicsData = amide_wave)
+amide3 <- data.frame(sample = amide_wave_res$SampleID, Batch = attr(amide_wave_res,"group_DF")$Group,
+           pc1 = amide_wave_res$PC1, pc2 = amide_wave_res$PC2) %>%
+  ggplot(aes(x = pc1, y = pc2,color = Batch)) + 
+  geom_point(alpha = 0.50,size = 4) + 
+  theme_bw() + 
+  labs(x = paste0("PC1 (R^2 = ",round(attr(amide_wave_res,"R2")[1],3),")"),
+       y = paste0("PC1 (R^2 = ",round(attr(amide_wave_res,"R2")[2],3),")"),
+       title = "Amide: WaveICA2.0")
+# serrf
+amide_serrf_res <- dim_reduction(omicsData = amide_serrf)
+amide4 <- data.frame(sample = amide_serrf_res$SampleID, Batch = attr(amide_serrf_res,"group_DF")$Group,
+           pc1 = amide_serrf_res$PC1, pc2 = amide_serrf_res$PC2) %>%
+  ggplot(aes(x = pc1, y = pc2,color = Batch)) + 
+  geom_point(alpha = 0.5,size = 4) + 
+  theme_bw() + 
+  labs(x = paste0("PC1 (R^2 = ",round(attr(amide_serrf_res,"R2")[1],3),")"),
+       y = paste0("PC1 (R^2 = ",round(attr(amide_serrf_res,"R2")[2],3),")"),
+       title = "Amide: SERRF")
+
+(amide1|amide2)/(amide3|amide4)
+```
+
+## Dataset 2: Mix Data
+
+We now proceed to the second data set. As not all data sets are structured the same way, there need to be different batch correction methods. The dataset `pmart_mix` is based off of the dataset `mix` from the `crmn` package. This metabolomics dataset was ran in three batches. There are 46 molecules and 42 samples. This dataset contains sample information regarding batch as well as molecule information regarding internal standards/negative controls.
+
+### Load in the Data
+
+A `pmartR` friendly version of the Mix data is already implemented within `malbacR`. Therefore, we simply need to load the data.
+
+```{r}
+data(pmart_mix)
+```
+
+Before running batch correction, we need to clean the data by log2 transforming the abundance values and normalizing the data. This dataset has no missing values. As there is no group information, we specify the batch number `BatchNum` as both the `main_effects` effect and the `batch_id`.
+
+```{r}
+pmart_mix <- edata_transform(pmart_mix,"log2")
+pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum",batch_id = "BatchNum")
+pmart_mix <- normalize_global(pmart_mix,subset_fn = "all",norm_fn = "median",
+                                apply_norm = TRUE,backtransform = TRUE)
+```
+
+Some methods that have already been demonstrated can be used with this dataset as well such as range scaling, power scaling, pareto scaling, and ComBat. There are no QC samples in this data so QC-RLSC, TIGER, and SERRF cannot be ran. In addition, there is no injection order information which means that there is insufficient data to run WaveICA2.0. Further there is also no group information and thus EigenMS should not be ran. As there is no group information, ComBat can only be run with batch information and not batch and group information.
+
+##### Internal Standards/Negative Controls Methods
+
+The two main methods we must use this dataset for are RUV-random and NOMIS. Both of these methods do not allow for missing values. As the data is already complete, there is no need to run imputation. However it is important to note that these methods require complete observations. The first method that we use with the mix dataset is RUV-random which utilizes the function `bc_ruvRandom` and takes the parameters `omicsData`, `nc_cname` (column in `e_meta` which has information on negative controls - here we use the tag for internal standards as negative control), `nc_val` (which is the value within `nc_cname` that is the negative control value), and `k` (the number of factors of unwanted variation)
+
+```{r}
+mix_ruv <- bc_ruvRandom(omicsData = pmart_mix, nc_cname = "tag",nc_val = "IS", k = 3)
+```
+
+The other method that uses information found in `e_meta` is NOMIS which uses the function `bc_nomis` and takes the parameters `omicsData`, `is_cname` (column in `e_meta` which has the information on internal standards), `is_val` (the value within `is_cname` that is the value for internal standards) and `num_pc` (number of principal components for NOMIS to consider).
+
+```{r}
+mix_nomis <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", num_pc = 2)
+```
+
+##### Other Methods
+
+We also run applicable methods that we also used in the Amide dataset such as range scaling, pareto scaling, power scaling, and ComBat.
+
+```{r}
+mix_combat <- bc_combat(omicsData = pmart_mix)
+mix_range <- bc_range(omicsData = pmart_mix)
+mix_pareto <- bc_pareto(omicsData = pmart_mix)
+mix_power <- bc_power(omicsData = pmart_mix)
+```
+
+### Mix: Data Visualization
+
+Similar to the previous dataset, we can compare the PCA plots between the unadjusted and adjusted data sets. Using the same qualitative logic as with the Amide dataset, it appears that NOMIS performs the best based on the PPCA clustering.
+
+```{r,out.width = "33%"}
+pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum")
+mix_range <- group_designation(mix_range,main_effects = "BatchNum")
+mix_power <- group_designation(mix_power,main_effects = "BatchNum")
+mix_pareto <- group_designation(mix_pareto,main_effects = "BatchNum")
+mix_combat <- group_designation(mix_combat,main_effects = "BatchNum")
+mix_ruv <- group_designation(mix_ruv,main_effects = "BatchNum")
+mix_nomis <- group_designation(mix_nomis,main_effects = "BatchNum")
+
+p1 <- plot(dim_reduction(omicsData = pmart_mix)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Unadjusted")
+p2 <- plot(dim_reduction(omicsData = mix_ruv)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: RUV-random")
+p3 <- plot(dim_reduction(omicsData = mix_nomis)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: NOMIS")
+p4 <- plot(dim_reduction(omicsData = mix_combat)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: ComBat")
+p5 <- plot(dim_reduction(omicsData = mix_range)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Range")
+p6 <- plot(dim_reduction(omicsData = mix_power)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Power")
+p7 <- plot(dim_reduction(omicsData = mix_pareto)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Pareto")
+
+p1;p2;p3;p4;p5;p6;p7
+```
+```{r,include = FALSE, eval = FALSE}
+# unadjusted
+pmart_mix_res <- dim_reduction(omicsData = pmart_mix)
+mix1 <- data.frame(sample = pmart_mix_res$SampleID, Batch = attr(pmart_mix_res,"group_DF")$Group,
+           pc1 = pmart_mix_res$PC1, pc2 = pmart_mix_res$PC2) %>%
+  ggplot(aes(x = pc1, y = pc2,color = Batch)) + 
+  geom_point(alpha = 0.5,size = 4) + 
+  theme_bw() + 
+  labs(x = paste0("PC1 (R^2 = ",round(attr(pmart_mix_res,"R2")[1],3),")"),
+       y = paste0("PC1 (R^2 = ",round(attr(pmart_mix_res,"R2")[2],3),")"),
+       title = "Mix: Unadjusted")
+# ruv random
+mix_ruv_res <- dim_reduction(omicsData = mix_ruv)
+mix2 <- data.frame(sample = mix_ruv_res$SampleID, Batch = attr(mix_ruv_res,"group_DF")$Group,
+           pc1 = mix_ruv_res$PC1, pc2 = mix_ruv_res$PC2) %>%
+  ggplot(aes(x = pc1, y = pc2,color = Batch)) + 
+  geom_point(alpha = 0.5,size = 4) + 
+  theme_bw() + 
+  labs(x = paste0("PC1 (R^2 = ",round(attr(mix_ruv_res,"R2")[1],3),")"),
+       y = paste0("PC1 (R^2 = ",round(attr(mix_ruv_res,"R2")[2],3),")"),
+       title = "Mix: RUV-random")
+# nomis
+mix_nomis_res <- dim_reduction(omicsData = mix_nomis)
+mix3 <- data.frame(sample = mix_nomis_res$SampleID, Batch = attr(mix_nomis_res,"group_DF")$Group,
+           pc1 = mix_nomis_res$PC1, pc2 = mix_nomis_res$PC2) %>%
+  ggplot(aes(x = pc1, y = pc2,color = Batch)) + 
+  geom_point(alpha = 0.5,size = 4) + 
+  theme_bw() + 
+  labs(x = paste0("PC1 (R^2 = ",round(attr(mix_nomis_res,"R2")[1],3),")"),
+       y = paste0("PC1 (R^2 = ",round(attr(mix_nomis_res,"R2")[2],3),")"),
+       title = "Mix: NOMIS")
+# combat
+mix_combat_res <- dim_reduction(omicsData = mix_combat)
+mix4 <- data.frame(sample = mix_combat_res$SampleID, Batch = attr(mix_combat_res,"group_DF")$Group,
+           pc1 = mix_combat_res$PC1, pc2 = mix_combat_res$PC2) %>%
+  ggplot(aes(x = pc1, y = pc2,color = Batch)) + 
+  geom_point(alpha = 0.5,size = 4) + 
+  theme_bw() + 
+  labs(x = paste0("PC1 (R^2 = ",round(attr(mix_combat_res,"R2")[1],3),")"),
+       y = paste0("PC1 (R^2 = ",round(attr(mix_combat_res,"R2")[2],3),")"),
+       title = "Mix: ComBat")
+
+(mix1|mix2)/(mix3|mix4)
+```
+
