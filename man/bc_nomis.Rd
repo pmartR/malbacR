@@ -32,7 +32,7 @@ normalization regarding batch effect correction
 }
 \examples{
 \dontrun{
-library(danceR)
+library(malbacR)
 data("pmart_mix")
 pmart_mix <- edata_transform(pmart_mix,"log2")
 pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum",batch_id = "BatchNum")

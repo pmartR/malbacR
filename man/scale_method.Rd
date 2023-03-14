@@ -26,7 +26,7 @@ package DiffCorr, but it allows for missing values for Power and Range scaling
 }
 \examples{
 \dontrun{
-library(danceR)
+library(malbacR)
 data("udn_metab_all")
 scale_method(udn_metab_all$e_data[,-1])
 }

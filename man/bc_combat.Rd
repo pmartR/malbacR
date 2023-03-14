@@ -26,7 +26,7 @@ batch effect correction
 }
 \examples{
 \dontrun{
-library(danceR)
+library(malbacR)
 data("pmart_amide")
 pmart_amide <- edata_transform(pmart_amide,"log2")
 pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")

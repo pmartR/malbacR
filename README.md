@@ -8,6 +8,9 @@ This R package provides functionality for batch correction methods for mass spec
 devtools::install_github("pmartR/malbacR")
 ```
 
+pmart required
+
+
 It’s been noted, here https://stackoverflow.com/questions/51257009/is-rtools-incompatible-with-r-version-3-5-1 , that there are issues with Rtools for R version 3.5.1.
  
 If you run into the same problem when trying to install using `devtools::install_github()` and the suggested fix in the above link does not work, you can clone or download the malbacR library to your computer and install it locally.

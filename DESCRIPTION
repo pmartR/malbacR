@@ -12,7 +12,7 @@ Depends:
 Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Imports:
     magrittr,
     ProteoMM,
@@ -25,7 +25,11 @@ Imports:
     parallel,
     doParallel,
     foreach,
-    R.devices
+    R.devices,
+    trelliscopejs,
+    WaveICA2.0,
+    pmartR,
+    pmartRdata
 Remotes:
     hafen/trelliscopejs,
     dengkuistat/WaveICA_2.0,
