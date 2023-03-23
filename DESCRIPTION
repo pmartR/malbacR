@@ -32,10 +32,10 @@ Imports:
     pmartR,
     pmartRdata
 Remotes:
-    hafen/trelliscopejs,
-    dengkuistat/WaveICA_2.0,
-    pmartR/pmartR,
-    pmartR/pmartRdata
+    github::hafen/trelliscopejs,
+    github::dengkuistat/WaveICA_2.0,
+    github::pmartR/pmartR,
+    github::pmartR/pmartRdata
 Suggests:
     rmarkdown,
     knitr,
