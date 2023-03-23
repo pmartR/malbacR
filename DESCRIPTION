@@ -1,6 +1,6 @@
 Package: malbacR
 Type: Package
-Title: Domain Aware Normalization and batch Correction for Experiments (DANCE)
+Title: Mass spectrometry ALgorigthms for BAtch Correction
 Version: 0.1.0
 Date: 2021-09-16
 Authors@R: c(person("Kelly", "Stratton", email = "kelly.stratton@pnnl.gov", role = c("aut", "cre")), person("Lisa", "Bramer", email = "lisa.bramer@pnnl.gov", role = c("aut")))
@@ -13,6 +13,7 @@ Encoding: UTF-8
 LazyData: true
 VignetteBuilder: knitr
 RoxygenNote: 7.2.3
+biocViews:
 Imports:
     magrittr,
     ProteoMM,
