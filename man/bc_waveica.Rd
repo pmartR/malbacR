@@ -32,8 +32,8 @@ This function returns a pmart object that has been undergone WaveICA_2.0
  batch effect correction
 }
 \examples{
-\dontrun{
 library(malbacR)
+library(pmartR)
 data("pmart_amide")
 pmart_amide <- edata_transform(pmart_amide,"log2")
 pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
@@ -43,7 +43,6 @@ impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 amide_wave <- bc_waveica(omicsData = amide_imp, injection_cname = "Injection_order",
                          alpha = 0, cutoff = 0.1, K = 10)
-}
 
 }
 \author{

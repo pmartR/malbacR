@@ -12,16 +12,14 @@
 #' has undergone pre-treatment method
 #' 
 #' @examples
-#' \dontrun{
 #' library(malbacR)
-#' data("udn_metab_all")
-#' scale_method(udn_metab_all$e_data[,-1])
-#' }
+#' data(pmart_amide)
+#' malbacR:::scale_method(pmart_amide$e_data[,-1])
 #' 
 #' @author Damon Leach
 #' 
 #' 
-scale_method <-  function (data, methods = c("auto", "range", "pareto", "vast", 
+scale_method <- function (data, methods = c("auto", "range", "pareto", "vast", 
                                        "level", "power")) 
 {
   methods <- match.arg(methods)

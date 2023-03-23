@@ -27,8 +27,8 @@ This function returns a pmart object that has been undergone SERRF
  batch effect correction
 }
 \examples{
-\dontrun{
 library(malbacR)
+library(pmartR)
 data("pmart_amide")
 pmart_amide <- edata_transform(pmart_amide,"log2")
 pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
@@ -38,8 +38,6 @@ amide_combat <- bc_combat(omicsData = pmart_amide, use_groups = FALSE)
 impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC")
-
-}
 
 }
 \author{

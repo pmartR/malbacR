@@ -1,75 +1,15 @@
----
-title: 'malbacR: A Vignette Pertaining to Pre-Filtered Data'
-author: "Damon Leach, Kelly Stratton, Lisa Bramer"
-date: "`r Sys.Date()`"
-output: 
-  html_document:
-    df_print: paged
-    rmarkdown::html_vignette:
-    fig_caption: yes
-    self_contained: yes
-    toc: true
-bibliography: analysis_ref.bib
-vignette: >
-  %\VignetteIndexEntry{malbacR-condensed-filtered} 
-  %\VignetteEngine{knitr::rmarkdown} 
-  %\VignetteEncoding{UTF-8}
----
-
-The R package `malbacR` is a new package that deals with batch correction methods of small molecule omics data. It works in conjunction with `pmartR`, an R package designed for preprocessing, filtering, and analyzing multi-omics data [@pmartr; @pmartr2].
-
-This outline demonstrates the functionality and use of the `malbacR` package. Within this package, there are four data sets: `pmart_amide`, `pmart_amideFilt`,`pmart_mix`, and `pmart_mixFilt`. The first two objects contain data originally found in the package `WaveICA2.0` [@waveica_package]. The second two objects contain data originally found in the package `crmn` [@crmn_package]. The data sets with the suffix "Filt" are filtered versions of the original data sets. That is, unlike their non-filtered counterparts, these data objects require no additional data manipulation for batch correction to successfully run. For this example, we work with the filtered data sets to demonstrate how the `malbacR` functions work.
-
-Within `malbacR` there are 11 batch correction methods:
-
-1. Range Scaling [@scaling_paper]
-2. Power Scaling [@scaling_paper]
-3. Pareto Scaling [@scaling_paper]
-4. ComBat [@combat_paper]
-5. EigenMS [@eigenMS_paper]
-6. NOMIS [@nomis_paper]
-7. RUV-random [@ruvrandom_paper]
-8. QC-RLSC [@qcrlsc_paper]
-9. WaveICA2.0 [@waveica_paper]
-10. TIGER [@tiger_paper]
-11. SERRF [@serrf_paper]
-
-```{r, echo = FALSE}
+## ---- echo = FALSE------------------------------------------------------------
 knitr::opts_chunk$set(message = FALSE)
-```
 
-```{r}
+## -----------------------------------------------------------------------------
 library(malbacR)
 library(pmartR)
 library(ggplot2)
-```
 
-## Data Set 1: Amide Data
-
-### Load in the Data
-
-A `pmartR` friendly version of the "Amide" data that has already undergone filtering and log2 transformations is already implemented within `malbacR`. Therefore, we simply load in the data.
-
-```{r}
+## -----------------------------------------------------------------------------
 data(pmart_amideFilt)
-```
 
-### Run Batch Correction Methods
-
-The "Amide" data set contains information regarding quality control samples. Therefore the following methods can be used:
-
-- Range Scaling
-- Power Scaling
-- Pareto Scaling
-- TIGER
-- EigenMS
-- WaveICA2.0
-- SERRF
-- ComBat
-
-It is important to note that the data `pmart_amideFilt` has been filtered, transformed, and imputed such that the data runs with all possible methods, but it may be conservative for a given method. For example, some methods do not require imputation to run, but because some methods require imputation (like SERRF and WaveICA2.0) [@serrf_paper;@waveica_paper], the data has been imputed.
-
-```{r, results = 'hide'}
+## ---- results = 'hide'--------------------------------------------------------
 # SCALING METHODS
 # range scaling
 amide_range <- bc_range(omicsData = pmart_amideFilt)
@@ -103,13 +43,8 @@ amide_eigen <- bc_eigenMS(omicsData = pmart_amideFilt)
 # WaveICA2.0
 amide_wave <- bc_waveica(omicsData = pmart_amideFilt, injection_cname = "Injection_order",
                          alpha = 0, cutoff = 0.1, K = 10)
-```
 
-### Data Visualization
-
-After obtaining all the different batch corrected data sets, we can plot the PPCA to see if they are successfully returning batch corrected data. We set the `group_designation` to use our batch information as the `main_effects` so as to color the data by batch. All of this code is run using functions from `pmartR` demonstrating the utility between the two packages.
-
-```{r, out.width = "33%"}
+## ---- out.width = "33%"-------------------------------------------------------
 pmart_amide <- group_designation(pmart_amideFilt,main_effects = "batch")
 amide_range <- group_designation(amide_range,main_effects = "batch")
 amide_power <- group_designation(amide_power,main_effects = "batch")
@@ -131,34 +66,11 @@ p8 <- plot(dim_reduction(omicsData = amide_wave))+ scale_colour_discrete(name="B
 p9 <- plot(dim_reduction(omicsData = amide_serrf))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: SERRF")
 
 p1;p2;p3;p4;p5;p6;p7;p8;p9
-```
 
-## Data Set 2: Mix Data
-
-### Load in the Data
-
-The `malbacR` package includes another `pmartR` friendly data set for the "mix" data which has already undergone filtering and log2 transformations is already implemented within `malbacR`. Therefore, we simply load in the data.
-
-```{r}
+## -----------------------------------------------------------------------------
 data(pmart_mixFilt)
-```
 
-### Run Batch Correction Methods
-
-The "mix" data set contains information regarding negative controls/internal standards. Therefore the following methods can be used:
-
-- Range Scaling
-- Power Scaling
-- Pareto Scaling
-- RUV-random
-- NOMIS
-- ComBat
-
-As there is no information regarding QC samples or injection order, the other batch correction methods in the package or not able to be used with this data set.
-
-As with the `pmart_amideFilt` data set, is important to note that the data in `pmart_mixFilt` has been filtered and transformed such that the data runs with all possible methods, but it may be conservative for a given method. As there were no missing data with the "mix" data set, no imputation was computed.
-
-```{r, warning = FALSE}
+## ---- warning = FALSE---------------------------------------------------------
 # SCALING METHODS
 # range scaling
 mix_range <- bc_range(omicsData = pmart_mixFilt)
@@ -178,13 +90,8 @@ mix_nomis <- bc_nomis(omicsData = pmart_mixFilt, is_cname = "tag", is_val = "IS"
 
 # OTHER METHODS
 mix_combat <- bc_combat(omicsData = pmart_mixFilt)
-```
 
-### Mix: Data Visualization
-
-Similar to the previous data set, we can compare the PCA plots between the unadjusted and adjusted data sets.
-
-```{r,out.width = "33%"}
+## ----out.width = "33%"--------------------------------------------------------
 pmart_mix <- group_designation(pmart_mixFilt,main_effects = "BatchNum")
 mix_range <- group_designation(mix_range,main_effects = "BatchNum")
 mix_power <- group_designation(mix_power,main_effects = "BatchNum")
@@ -202,6 +109,4 @@ p6 <- plot(dim_reduction(omicsData = mix_power)) + scale_colour_discrete(name="B
 p7 <- plot(dim_reduction(omicsData = mix_pareto)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Pareto")
 
 p1;p2;p3;p4;p5;p6;p7
-```
 
-## References

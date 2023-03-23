@@ -15,13 +15,13 @@
 #' @return Object of tigerFilt class
 #' 
 #' @examples
-#' \dontrun{
+#' library(malbacR)
 #' library(pmartRdata)
 #' data(pmart_amide)
+#' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
 #' tigerFilt <- tiger_filter(omicsData = pmart_amide,sampletype_cname = "group", test_val = "QC")
-#' pmart_amide_filt <- pmartR::applyFilt(filter_object = tigerFilt,omicsData = pmart_amide_filt)
+#' pmart_amide_filt <- apply_tigerFilt(filter_object = tigerFilt,omicsData = pmart_amide)
 #' amide_tiger <- bc_tiger(omicsData = pmart_amide_filt, sampletype_cname = "group", test_val = "QC")
-#' }
 #' 
 #' @author Damon Leach
 #' 
@@ -303,14 +303,11 @@ danceR_filter_worker <- function(filter_object, omicsData){
 #'   \code{lipidData}, \code{metabData}, or \code{nmrData} with specified cname_ids,
 #'   edata_cnames, and emeta_cnames filtered out of the appropriate datasets.
 #'
-#'   
 #' @examples
-#' dontrun{
 #' library(pmartRdata)
 #' data("pmart_amide")
 #' to_filter <- tiger_filter(omicsData = pmart_amide,sampletype_cname = "group", test_val = "QC")
 #' amideFilt <- apply_tigerFilt(filter_object = to_filter, omicsData = pep_object)
-#' }
 #'
 #' @author Lisa Bramer, Kelly Stratton,Damon Leach
 #'

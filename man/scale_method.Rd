@@ -25,11 +25,9 @@ This function is a modified version of the function ScalingMethods from the
 package DiffCorr, but it allows for missing values for Power and Range scaling
 }
 \examples{
-\dontrun{
 library(malbacR)
-data("udn_metab_all")
-scale_method(udn_metab_all$e_data[,-1])
-}
+data(pmart_amide)
+malbacR:::scale_method(pmart_amide$e_data[,-1])
 
 }
 \author{

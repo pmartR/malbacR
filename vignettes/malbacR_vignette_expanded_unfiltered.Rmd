@@ -2,8 +2,18 @@
 title: 'malbacR: A Vignette Pertaining to Unfiltered Data'
 author: "Damon Leach, Kelly Stratton, Lisa Bramer"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  html_document:
+    df_print: paged
+    rmarkdown::html_vignette:
+    fig_caption: yes
+    self_contained: yes
+    toc: true
 bibliography: analysis_ref.bib
+vignette: >
+  %\VignetteIndexEntry{malbacR-expanded-unfiltered} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
 ---
 
 The R package `malbacR` is a new package that deals with batch correction methods of small molecule omics data. It works in conjunction with `pmartR`, an R package designed for preprocessing, filtering, and analyzing multi-omics data [@pmartr; @pmartr2].
