@@ -26,12 +26,10 @@ This function takes a filter object of class 'tigerFilt' and
   \code{lipidData}, \code{metabData}, or \code{nmrData}.
 }
 \examples{
-dontrun{
 library(pmartRdata)
 data("pmart_amide")
 to_filter <- tiger_filter(omicsData = pmart_amide,sampletype_cname = "group", test_val = "QC")
 amideFilt <- apply_tigerFilt(filter_object = to_filter, omicsData = pep_object)
-}
 
 }
 \author{

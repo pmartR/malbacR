@@ -53,7 +53,8 @@ Obtain abundance values in a pmart object for QC-RLSC Normalization
 }
 \examples{
 \dontrun{
-library(danceR)
+library(malbacR)
+library(pmartR)
 data("pmart_amide")
 pmart_amide <- edata_transform(pmart_amide,"log2")
 pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
@@ -61,8 +62,7 @@ pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median"
                                apply_norm = TRUE,backtransform = TRUE)
 amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
                           qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
-                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
-}
+                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)}
  
 }
 \author{

@@ -22,14 +22,10 @@ object of pmartR object containing imputated e_data
 This function returns a pmart object that has undergone imputation
 }
 \examples{
-\dontrun{
-library(pmartRdata)
-data("mini_udn")
-molfilt <- pmartR::molecule_filter(mini_udn)
-mini_udn <- pmartR::applyFilt(molfilt, mini_udn)
-imp <- imputation(mini_udn)
-imputed_data <- apply_imputation(imp,mini_udn)
-}
+library(malbacR)
+data("pmart_amide")
+impFilt <- imputation(pmart_amide)
+imputed_data <- apply_imputation(impFilt,pmart_amide)
 
 }
 \author{

@@ -2,10 +2,10 @@
 % Please edit documentation in R/tiger_filtering.R
 \name{danceR_filter_worker}
 \alias{danceR_filter_worker}
-\title{danceR Filter Worker}
+\title{malbacR Filter Worker}
 \usage{
 danceR_filter_worker(filter_object, omicsData)
 }
 \description{
-danceR Filter Worker
+malbacR Filter Worker
 }

@@ -1,13 +1,40 @@
 ---
-title: 'malbacR: Example'
+title: 'malbacR: A Vignette Pertaining to Unfiltered Data'
 author: "Damon Leach, Kelly Stratton, Lisa Bramer"
 date: "`r Sys.Date()`"
-output: html_document
+output: 
+  html_document:
+    df_print: paged
+    rmarkdown::html_vignette:
+    fig_caption: yes
+    self_contained: yes
+    toc: true
+bibliography: analysis_ref.bib
+vignette: >
+  %\VignetteIndexEntry{malbacR-expanded-unfiltered} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
 ---
 
-This outline demonstrates the functionality and use of the `malbacR` package. Within this package, there are four datasets: `pmart_amide`, `pmart_mix`,`pmart_amideFilt`, and `pmart_mixFilt`. The first two are obtained from other packages `WaveICA2.0` and `cmrn` respectively that have dealt with batch corrections. The second two packages are simply filtered versions of the first two packages that need no additional data manipulation for batch correction to successfully run. First this outline, we work with the unfiltered datasets.
+The R package `malbacR` is a new package that deals with batch correction methods of small molecule omics data. It works in conjunction with `pmartR`, an R package designed for preprocessing, filtering, and analyzing multi-omics data [@pmartr; @pmartr2].
 
-First we load in the necessary libraries which is the `malbacR` package itself and `pmartR` which `malbacR` works with compatibly.
+This outline demonstrates the functionality and use of the `malbacR` package. Within this package, there are four data sets: `pmart_amide`, `pmart_amideFilt`,`pmart_mix`, and `pmart_mixFilt`. The first two objects contain data originally found in the package `WaveICA2.0` [@waveica_package]. The second two objects contain data originally found in the package `crmn` [@crmn_package]. The data sets with the suffix "Filt" are filtered versions of the original data sets. That is, unlike their non-filtered counterparts, these data objects require no additional data manipulation for batch correction to successfully run. For this example, we work with the unfiltered data sets to demonstrate how `pmartR` works with in tandem with `malbacR`.
+
+Within `malbacR` there are 11 batch correction methods:
+
+1. Range Scaling [@scaling_paper]
+2. Power Scaling [@scaling_paper]
+3. Pareto Scaling [@scaling_paper]
+4. ComBat [@combat_paper]
+5. EigenMS [@eigenMS_paper]
+6. NOMIS [@nomis_paper]
+7. RUV-random [@ruvrandom_paper]
+8. QC-RLSC [@qcrlsc_paper]
+9. WaveICA2.0 [@waveica_paper]
+10. TIGER [@tiger_paper]
+11. SERRF [@serrf_paper]
+
+First we load in the necessary libraries which is the `malbacR` package itself and `pmartR` [@pmartr2] which `malbacR` works with compatibly. Additionally, `ggplot2` is loaded for some slight graphical manipulations.
 
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(message = FALSE)
@@ -16,13 +43,12 @@ knitr::opts_chunk$set(message = FALSE)
 ```{r}
 library(malbacR)
 library(pmartR)
-library(patchwork)
 library(ggplot2)
 ```
 
-## Dataset 1: Amide Data
+## Data Set 1: Amide Data
 
-The first data set in `malbacR`, `pmart_amide`, is the Amide data set originally found in the package `WaveICA2.0`. This metabolomics dataset was ran in three batches. In this random subset of this dataset, there are 500 molecules and 642 samples. This dataset contains information about the samples regarding batch, group, Quality Control (QC) samples, and injection order. Using this information, we can run batch correction on the data using the following methods: range scaling, power scaling, pareto scaling, ComBat, EigenMS, QC-RLSC TIGER, and WaveICA2.0. As there is no e_meta information for negative controls or internal standards, NOMIS and RUV-random cannot be run.
+The first data set in `malbacR`, `pmart_amide`, is the Amide data set originally found in the package `WaveICA2.0` [@waveica_package]. This metabolomics data set was ran in three batches. In this random subset of the Amide data, there are 500 molecules and 642 samples. This data set contains information about the samples regarding batch, group, Quality Control (QC) samples, and injection order. Using this information, we can run batch correction on the data using the following methods: range scaling [@scaling_paper], power scaling [@scaling_paper], pareto scaling [@scaling_paper], ComBat [@combat_paper], EigenMS [@eigenMS_paper], QC-RLSC [@qcrlsc_paper], TIGER [@tiger_paper], and WaveICA2.0 [@waveica_paper]. As there is no e_meta information for negative controls or internal standards, NOMIS [@nomis_paper] and RUV-random [@ruvrandom_paper] cannot be run.
 
 ### Load in the Data
 
@@ -32,7 +58,7 @@ A `pmartR` friendly version of the Amide data is already implemented within `mal
 data(pmart_amide)
 ```
 
-Before running batch correction, we need to clean the data by log2 transforming the abundance values, setting a group designation with `group` as the `main_effects` and `batch` as the `batch_id`, and normalizing the data. All of this is done using the functions `edata_transform`, `group_designation`, and `normalize_global` respectively within `pmartR`.
+Before running batch correction, we clean the data by log2 transforming the abundance values, setting a group designation with `group` as the `main_effects` and `batch` as the `batch_id`. We then normalize the data using a global median. All of this is done using the functions `edata_transform`, `group_designation`, and `normalize_global` respectively within `pmartR` [@pmartr2].
 
 ```{r}
 pmart_amide <- edata_transform(pmart_amide,"log2")
@@ -45,7 +71,7 @@ pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median"
 
 ##### Scaling Methods
 
-To run batch effect correction using range, power, and pareto scaling, the function is `bc_range`, `bc_power`, and `bc_pareto` respectively. All three of these functions simply simply take the parameter `omicsData` which is the S3 data object that is compatible within `pmartR`.
+To correct for batch effects using range, power, and pareto scaling, we use the functions `bc_range`, `bc_power`, and `bc_pareto` respectively. All three of these functions simply simply take the parameter `omicsData` which is the S3 data object that is compatible within `pmartR`.
 
 ```{r}
 # range scaling
@@ -60,9 +86,9 @@ amide_pareto <- bc_pareto(omicsData = pmart_amide)
 
 ##### QC-Based Methods
 
-Some methods rely on Quality Control (QC) sample information including TIGER, QC-RLSC, and SERRF. To run TIGER (Technical variation elImination with ensemble learninG architEctuRe), the function is `bc_tiger` and uses the following parameters: `omicsData`, `sampletype_cname` (a column in `f_data` that specifies which sample is QC sample or not), `test_val` (the value in `sampletype_cname` that specifies a QC sample), and `injection_cname` (the column in `f_data` that specifies the injection order).
+Some batch correction methods rely on Quality Control (QC) samples including TIGER, QC-RLSC, and SERRF. To run TIGER (Technical variation elImination with ensemble learninG architEctuRe) [@tiger_paper], we run the function `bc_tiger` and use the following parameters: `omicsData`, `sampletype_cname` (a column in `f_data` that specifies which sample is QC sample or not), `test_val` (the value in `sampletype_cname` that specifies a QC sample), and `injection_cname` (the column in `f_data` that specifies the injection order).
 
-TIGER requires that there be at least one sample from the QC samples to have complete data for every molecule and at least one sample from the non-QC samples to have complete data from every molecule. For this reason, we include within `malbacR` a function: `tiger_filter` that finds the combination of a QC and a non-QC sample that has the the fewest number of missing molecules to determine how many will need to be removed. Using an additional function `apply_tigerFilt`, we apply that filter  and obtain an S3 object that is capable of working within the `pmartR` and `malbacR` framework. Although this subset of data is already capable of undergoing TIGER batch correction as there is at least one QC sample and at least one non-QC sample that has no missing molecules, we show how these functions would work in general.
+TIGER requires that there be at least one sample from the QC samples to have complete data for every molecule and at least one sample from the non-QC samples to have complete data from every molecule [@tiger_paper]. For this reason, we include a function, `tiger_filter`, that finds the combination of a QC sample and a non-QC sample that has the the fewest number of missing molecules to determine which molecules need to be removed. Using an additional function `apply_tigerFilt`, we apply that filter and obtain an S3 object that is capable of working within both `pmartR` and `malbacR`. Although this subset of data is already capable of undergoing TIGER batch correction as there is at least one QC sample and at least one non-QC sample with no missing values, we show how these functions would work in general.
 
 ```{r}
 tigerFilt <- tiger_filter(pmart_amide,sampletype_cname = "group",test_val = "QC")
@@ -71,7 +97,7 @@ amide_tiger <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
                         test_val = "QC",injection_cname = "Injection_order")
 ```
 
-QC-RLSC (Quality Control - Robust Loess Signal Correction) can be ran using `bc_qcrlsc` which takes on the parameters `omicsData`, `block_cname` (a column in `f_data` that specifies which column contains batch information), `qc_cname` (a column in in `f_data` that specifies which sample is a QC sample or not), `qc_val` (the value in `qc_cname` that specifies a QC sample), and `order_cname` (a column in `f_data` taht specifies the run order of the samples). Additionally, the user can specify the `missing_thresh` (the minimum proportion of observed biomolecules for each QC samples), the `rsd_thresh`, and whether the user wants to `backtransform` the data or not.
+QC-RLSC (Quality Control - Robust Loess Signal Correction) [@qcrlsc_paper] can be ran using `bc_qcrlsc` which takes on the parameters `omicsData`, `block_cname` (a column in `f_data` that specifies which column contains batch information), `qc_cname` (a column in in `f_data` that specifies which sample is a QC sample or not), `qc_val` (the value in `qc_cname` that specifies a QC sample), and `order_cname` (a column in `f_data` that specifies the run order of the samples). Additionally, the user can specify the `missing_thresh` (the minimum proportion of observed biomolecules for each QC samples), the `rsd_thresh`, and whether the user wants to `backtransform` the data or not.
 
 ```{r}
 amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
@@ -79,9 +105,9 @@ amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
                           missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
 ```
 
-The final QC method in `malbacR` is SERRF (Systematic Error Removal using Random Forest) which uses the function `bc_serrf`. This function utilizes the parameters `omicsData`, `sampletype_cname`, and `test_val` which have the same meanings as those within `bc_tiger`.
+The final QC method in `malbacR` is SERRF (Systematic Error Removal using Random Forest) [@serrf_paper] which uses the function `bc_serrf`. This function utilizes the parameters `omicsData`, `sampletype_cname`, and `test_val` which have the same meanings as those within `bc_tiger`.
 
-One thing to note that SERRF is a method that requires complete observations. This means we either have to remove molecules with missing values or impute them using an Expectation Maximization algorithm. Although there are reasons to avoid imputation, we acknowledge that sometimes it is necessary. Therefore, we include an `imputation` function within `malbacR` that obtains the `e_data` that has been imputed. To then officially apply this to the `pmartR` S3 object, the user runs `apply_imputation`, similar to the procedure of `tiger_filter` and `apply_tigerFilt`.
+One thing to note that SERRF is a method that requires complete observations [@serrf_paper]. This means we either have to remove molecules with missing values or impute them using an Expectation Maximization algorithm. Although there are reasons to avoid imputation particularly with proteomics data [@webbrobertson2011], we acknowledge that there are cases in which imputation is necessary. Therefore, we include an `imputation` function that returns the `e_data` that has undergone imputation. To then officially apply this to the `pmartR` S3 object, the user runs `apply_imputation`, similar to the procedure of `tiger_filter` and `apply_tigerFilt`.
 
 ```{r}
 impObj <- imputation(omicsData = pmart_amide)
@@ -94,7 +120,7 @@ amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_va
 
 ##### Other Methods
 
-There are other methods that do not utilize a scaling approach or use QC samples. One method is ComBat. ComBat can be ran using `bc_combat` taking on the parameter `omicsData`. However, for this function to run, the user must have normalized the data using `normalize_global` and added a batch id using `group_designation` within `pmartR`. Further, there is an optional parameter `use_groups` that defaults to False. If set to true, ComBat will be run using both batch and group information rather than just batch information.
+There are other methods that do not utilize a scaling approach or use QC samples. One method is ComBat which relies on an Empirical Bayesian analysis [@combat_paper]. ComBat can be ran using `bc_combat` taking on the parameter `omicsData`. However, for this function to run, the user must have normalized the data using `normalize_global` and added a batch ID using `group_designation` within `pmartR`. Further, there is an optional parameter `use_groups` that defaults to `FALSE`. If set to `TRUE`, ComBat will run using both batch and group information rather than just batch information.
 
 ```{r}
 # combat batch correction
@@ -107,7 +133,7 @@ EigenMS uses the function `bc_eigenMS` and takes the parameter `omicsData`. Whil
 amide_eigen <- bc_eigenMS(omicsData = pmart_amide)
 ```
 
-The final method we demonstrate using the Amide data is WaveICA2.0 which uses the function `bc_waveica` and incorporates the parameters: `omicsData`, `injection_cname` (column of `f_data` with injection order information), as well as `alpha` (tradeoff value between independence of the samples and those of the variables in ICA), `cutoff` (threshold of variation explained by the injection order for independent components), and `K` (the maximal component that ICA decomposes). The defaults for `alpha`, `cutoff`, and `K` are 0, 0.1, and 10 respectively. Like SERRF, WaveICA2.0 requires complete observations so we use the imputed dataset that has already been created.
+The final method we demonstrate using the "Amide" data is WaveICA2.0 which uses the function `bc_waveica` and incorporates the parameters: `omicsData`, `injection_cname` (column of `f_data` with injection order information), as well as `alpha` (a tradeoff value between independence of the samples and those of the variables in ICA), `cutoff` (threshold of variation explained by the injection order for independent components), and `K` (the maximal component that ICA decomposes). The defaults for `alpha`, `cutoff`, and `K` are 0, 0.1, and 10 respectively. Like SERRF, WaveICA2.0 requires complete observations so we use the imputed data set that has already been created [@waveica_paper].
 
 ```{r, results = 'hide'}
 amide_wave <- bc_waveica(omicsData = amide_imp, injection_cname = "Injection_order",
@@ -116,7 +142,7 @@ amide_wave <- bc_waveica(omicsData = amide_imp, injection_cname = "Injection_ord
 
 ### Amide: Data Visualization
 
-After obtaining all the different batch corrected datasets, we can plot the PPCA to see if they are successfully returning batch corrected data. We set the `group_designation` to use our batch information as the `main_effects` so as to color the data by batch. All of this code is run using functions from `pmartR` demonstrating the utility between the two packages. A dataset with batch effects will tend to produce a PPCA with distinct clusters for each batch. A good batch effect correction method will reduce those distinct clusters. Using that logic, ComBat, WaveICA2.0, and SERRF perform the best within this dataset.
+After obtaining all the different batch corrected data sets, we can plot the PPCA [@sppca] to see if they are successfully returning batch corrected data. We set the `group_designation` to use our batch information as the `main_effects` so as to color the data by batch. All of this code is run using functions from `pmartR` demonstrating the utility between the two packages. A data set with batch effects will tend to produce a PPCA with distinct clusters for each batch. A good batch effect correction method will reduce those distinct clusters. Using that logic, ComBat, WaveICA2.0, and SERRF perform the best within this data set.
 
 ```{r, out.width = "33%"}
 pmart_amide <- group_designation(pmart_amide,main_effects = "batch")
@@ -189,19 +215,19 @@ amide4 <- data.frame(sample = amide_serrf_res$SampleID, Batch = attr(amide_serrf
 (amide1|amide2)/(amide3|amide4)
 ```
 
-## Dataset 2: Mix Data
+## Data Set 2: Mix Data
 
-We now proceed to the second data set. As not all data sets are structured the same way, there need to be different batch correction methods. The dataset `pmart_mix` is based off of the dataset `mix` from the `crmn` package. This metabolomics dataset was ran in three batches. There are 46 molecules and 42 samples. This dataset contains sample information regarding batch as well as molecule information regarding internal standards/negative controls.
+We now proceed to the second data set. As not all experiments are designed in the same manner, some batch correction methods may not apply to every data set. `pmart_mix` is based off of the data set `mix` from the `crmn` package [@crmn_package]. This metabolomics data set was ran in three batches. There are 46 molecules and 42 samples. This data set contains sample information regarding batch as well as molecule information regarding internal standards/negative controls.
 
 ### Load in the Data
 
-A `pmartR` friendly version of the Mix data is already implemented within `malbacR`. Therefore, we simply need to load the data.
+A `pmartR` friendly version of the `mix` data is already implemented within `malbacR`. Therefore, we simply need to load the data.
 
 ```{r}
 data(pmart_mix)
 ```
 
-Before running batch correction, we need to clean the data by log2 transforming the abundance values and normalizing the data. This dataset has no missing values. As there is no group information, we specify the batch number `BatchNum` as both the `main_effects` effect and the `batch_id`.
+Before running batch correction, we need to clean the data by log2 transforming the abundance values and normalizing the values This data set has no missing values. As there is no group information, we specify the batch number `BatchNum` as both the `main_effects` effect and the `batch_id` as a workaround.
 
 ```{r}
 pmart_mix <- edata_transform(pmart_mix,"log2")
@@ -210,11 +236,11 @@ pmart_mix <- normalize_global(pmart_mix,subset_fn = "all",norm_fn = "median",
                                 apply_norm = TRUE,backtransform = TRUE)
 ```
 
-Some methods that have already been demonstrated can be used with this dataset as well such as range scaling, power scaling, pareto scaling, and ComBat. There are no QC samples in this data so QC-RLSC, TIGER, and SERRF cannot be ran. In addition, there is no injection order information which means that there is insufficient data to run WaveICA2.0. Further there is also no group information and thus EigenMS should not be ran. As there is no group information, ComBat can only be run with batch information and not batch and group information.
+Some methods that have already been demonstrated can be used with this data set as well such as range scaling, power scaling, pareto scaling, and ComBat. There are no QC samples in this data so QC-RLSC, TIGER, and SERRF cannot be ran. In addition, there is no injection order information which means that there is insufficient data to run WaveICA2.0. Further there is also no group information (as `BatchNum` was placed as `main_effects` only as a placeholder) and thus EigenMS should not be ran. Additionally, ComBat should be only be ran with batch information and not with group information.
 
 ##### Internal Standards/Negative Controls Methods
 
-The two main methods we must use this dataset for are RUV-random and NOMIS. Both of these methods do not allow for missing values. As the data is already complete, there is no need to run imputation. However it is important to note that these methods require complete observations. The first method that we use with the mix dataset is RUV-random which utilizes the function `bc_ruvRandom` and takes the parameters `omicsData`, `nc_cname` (column in `e_meta` which has information on negative controls - here we use the tag for internal standards as negative control), `nc_val` (which is the value within `nc_cname` that is the negative control value), and `k` (the number of factors of unwanted variation)
+The two main batch correction methods for this data set are RUV-random and NOMIS. As the data is already complete, there is no need to run imputation. However it is important to note that these methods require complete observations [@ruvrandom_paper, @nomis_paper]. The first method that we use with the "mix" data set is RUV-random which utilizes the function `bc_ruvRandom` and takes the parameters `omicsData`, `nc_cname` (column in `e_meta` which has information on negative controls - here we use the tag for internal standards as negative control), `nc_val` (which is the value within `nc_cname` that is the negative control value), and `k` (the number of factors of unwanted variation)
 
 ```{r}
 mix_ruv <- bc_ruvRandom(omicsData = pmart_mix, nc_cname = "tag",nc_val = "IS", k = 3)
@@ -228,7 +254,7 @@ mix_nomis <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", nu
 
 ##### Other Methods
 
-We also run applicable methods that we also used in the Amide dataset such as range scaling, pareto scaling, power scaling, and ComBat.
+We also run applicable methods that were used in the "Amide" data set such as range scaling, pareto scaling, power scaling, and ComBat.
 
 ```{r}
 mix_combat <- bc_combat(omicsData = pmart_mix)
@@ -239,7 +265,7 @@ mix_power <- bc_power(omicsData = pmart_mix)
 
 ### Mix: Data Visualization
 
-Similar to the previous dataset, we can compare the PCA plots between the unadjusted and adjusted data sets. Using the same qualitative logic as with the Amide dataset, it appears that NOMIS performs the best based on the PPCA clustering.
+Similar to the previous data set, we can compare the PPCA plots between the unadjusted and adjusted data sets. Using the same qualitative logic as with the "Amide" data set, it appears that NOMIS performs the best based on the PPCA clustering.
 
 ```{r,out.width = "33%"}
 pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum")
@@ -305,3 +331,4 @@ mix4 <- data.frame(sample = mix_combat_res$SampleID, Batch = attr(mix_combat_res
 (mix1|mix2)/(mix3|mix4)
 ```
 
+### References
