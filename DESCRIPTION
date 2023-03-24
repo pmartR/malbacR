@@ -30,7 +30,8 @@ Imports:
     trelliscopejs,
     WaveICA2.0,
     pmartR,
-    pmartRdata
+    pmartRdata,
+    JADE
 Remotes:
     github::hafen/trelliscopejs,
     github::dengkuistat/WaveICA_2.0,

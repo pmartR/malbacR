@@ -25,3 +25,9 @@ amide_power <- bc_power(omicsData = pmart_amide)
 # pareto scaling
 amide_pareto <- bc_pareto(omicsData = pmart_amide)
 
+## -----------------------------------------------------------------------------
+tigerFilt <- tiger_filter(pmart_amide,sampletype_cname = "group",test_val = "QC")
+pmart_amideFilt <- apply_tigerFilt(tigerFilt,pmart_amide)
+amide_tiger <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
+                        test_val = "QC",injection_cname = "Injection_order")
+
