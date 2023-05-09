@@ -37,8 +37,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   # check that omicsData is of appropriate class #
   if (!inherits(omicsData, c("pepData", "proData", "metabData", "lipidData",
                              "nmrData"))) {
-    amide_imp$f_data$
-    
+
     stop (paste("omicsData must be of class 'pepData', 'proData', 'metabData',",
                 "'lipidData', or 'nmrData'",
                 sep = ' '))
