@@ -37,7 +37,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   # check that omicsData is of appropriate class #
   if (!inherits(omicsData, c("pepData", "proData", "metabData", "lipidData",
                              "nmrData"))) {
-
+    
     stop (paste("omicsData must be of class 'pepData', 'proData', 'metabData',",
                 "'lipidData', or 'nmrData'",
                 sep = ' '))
@@ -93,7 +93,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   
   # SERRF does not like missing values
   if (sum(is.na(omicsData$e_data[,-edata_cnameCol])) != 0) {
-   stop ("SERRF requires no missing observations. Remove molecules with missing samples.")
+    stop ("SERRF requires no missing observations. Remove molecules with missing samples.")
   }
   
   # run the SERRF calculations -------------------------------------------------
@@ -102,19 +102,25 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   edata <- omicsData$e_data[,-edata_cnameCol]
   fdata <- omicsData$f_data
   
+  
+  
   # separate the edata based on QC or not QC
-  edataQC <- edata[,fdata[,sampletype_cname] == test_val]
-  edata_noQC <- edata[,fdata[,sampletype_cname] != test_val]
+  qc_sampNames = fdata[fdata[,sampletype_cname] == test_val,][[fdata_cnameCol]]
+  nonqc_sampNames = fdata[fdata[,sampletype_cname] != test_val,][[fdata_cnameCol]]
+  edataQC <- edata %>% dplyr::select(dplyr::all_of(qc_sampNames))
+  edata_noQC <- edata %>% dplyr::select(dplyr::all_of(nonqc_sampNames))
   
   # now add in fdata information to the data for QC and non QC samples
   edataQC_t <- edataQC %>%
     t() %>%
     data.frame() %>%
     tibble::rownames_to_column(var = fdata_cname)
+  colnames(edataQC_t) <- c(fdata_cname,rownames(edata))
   edata_noQC_t <- edata_noQC %>%
     t() %>%
     data.frame() %>%
     tibble::rownames_to_column(var = fdata_cname)
+  colnames(edata_noQC_t) <- c(fdata_cname,rownames(edata))
   training_dat <- fdata %>%
     dplyr::right_join(edataQC_t, by = fdata_cname)
   testing_dat <- fdata %>%
@@ -143,11 +149,12 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   
   # find the correlation matrices for training and testing data
   for(b in 1:length(unique(batch_info[[batchName]]))){
+    #b = 2
     # find current batch
     current_batch = unique(batch_info[[batchName]])[b]
     
-    train_one_batch = subset(training_dat,training_dat[[batchName]] == current_batch)
-    test_one_batch = subset(testing_dat,testing_dat[[batchName]] == current_batch)
+    train_one_batch = subset(training_dat,training_dat$batch == current_batch)
+    test_one_batch = subset(testing_dat,testing_dat$batch == current_batch)
     
     # scale the training/QC data
     # subset to only training data and transpose the data so we have molecule x sample
@@ -170,6 +177,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
     
     # scale the data (different for target and training it appears)
     train_scale = t(apply(train_one_batch,1,scale))
+    #train_scale = t(scale(train_one_batch))
     test_scale = scale(test_one_batch)
     
     # find the correlation values for both target and training data (scaled)
@@ -226,13 +234,14 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
       tbl_colnames <- colnames(tst)
       norm_dat <- matrix(nrow=nrow(tst),ncol=ncol(tst))
       colnames(norm_dat) <- tbl_colnames
-  
+      
       doParallel::registerDoParallel(parallel::detectCores()-1)
       # for each molecule normalize the data
       nd <- foreach::foreach(i = 1:ncol(norm_dat),.combine = cbind) %dopar% {
         # find what variables we are working with num_cor
         num_cor = 10
         for(b in 1:length(unique(batch_info[[batchName]]))){
+          #b = 1; i = 1
           # find current batch
           current_batch = unique(batch_info[[batchName]])[b]
           
@@ -260,7 +269,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
             l = l+1
           }
         }
-          
+        
         #i = 1
         # identify the current variable
         current_var = colnames(norm_dat)[i]
@@ -272,16 +281,21 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
         # scale the QC training data
         train_data_x = apply(trn[,sel_var],2,scale)
         train_data = data.frame(train_data_y,train_data_x )
-        colnames(train_data) = c("y",colnames(norm_dat)[sel_var])
+        og_train_data_colnames = c("y",colnames(norm_dat)[sel_var])
         # scale the testing data
         test_data = apply(tst[,sel_var],2,scale)
         test_data = data.frame(test_data)
         # ensure that column names are the molecules
-        colnames(test_data) = colnames(norm_dat)[sel_var]
+        og_test_data_colnames = colnames(norm_dat)[sel_var]
         #colnames(test_data)[tst_current_var_col] <- "y"
         
         # run random forest on this dataset
-        model = ranger::ranger(y~., data = train_data)
+        # r sometimes gets angry at the molecule names so 
+        # we simplify them here for the model
+        predictor_vars = paste0("var",seq(from = 1, to = length(colnames(norm_dat)[sel_var]),by = 1))
+        colnames(train_data) = c("y",predictor_vars)
+        colnames(test_data) = predictor_vars
+        model = ranger::ranger(y ~ ., data = train_data)
         
         # begin adjusting the normalized values
         # find the important values
@@ -323,10 +337,11 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
     tibble::rownames_to_column(var = edata_cname)
   
   # put back into proper ordering (after removing QC samples)
-  adjustRank <- rank(match(colnames(edata_serrf), colnames(omicsData$e_data)))
-  edata_serrf <- edata_serrf[,adjustRank]
-  edata_serrf[,edata_cname] <- omicsData$e_data[,edata_cname]
-
+  og_edata <- omicsData$e_data %>%
+    dplyr::select(-dplyr::all_of(qc_sampNames))
+  og_edata_ordering <- colnames(og_edata)
+  edata_serrf <- edata_serrf %>% dplyr::select(dplyr::all_of(og_edata_ordering))
+  edata_serrf[,edata_cname] <- edata_serrf[order(edata_serrf[,edata_cname],omicsData$e_data[,edata_cname]),][[edata_cname]]
   
   # filter out the old QC samples
   fdata_serrf <- fdata[fdata[,sampletype_cname] != test_val,]
