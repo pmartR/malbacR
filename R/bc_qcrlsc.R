@@ -165,6 +165,17 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
   # split the f_data by batch
   batch_tib <- tibble::tibble(batchDat = split(omicsData$f_data,omicsData$f_data[,block_cname]))
   
+  # find if we only have one QC total in a batch
+  batch_tib <- batch_tib %>%
+    dplyr::mutate(numQC = purrr::map(batchDat,function(bd){
+      qc_colNum = which(colnames(bd) == qc_cname)
+      qcLength = length(which(bd[,qc_colNum] == qc_val))
+    }))
+  numQC_perBatch = unlist(batch_tib$numQC)
+  if(min(numQC_perBatch,na.rm=T) < 2) {
+    stop ("Each batch must have at minimum 2 QC samples (the first and last sample run for each batch must be a QC sample)")
+  }
+  
   # now we calculate the number of non NA values from filt_qc_data1
   batch_tib <- batch_tib %>%
     dplyr::mutate(
