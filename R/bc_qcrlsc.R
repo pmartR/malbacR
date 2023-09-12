@@ -213,6 +213,12 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
     stop("The first and last sample run for each batch must be a QC sample")
   }
   
+  # we cannot have values that equal 0
+  if(any(!is.na(data) & data == 0)){
+    stop("QC-RLSC cannot run on data that has been normalized without
+         backtransforming the data.")
+  }
+  
   # begin the calculations -----------------------------------------------------
   # run get_param to get the bad features
   optParam <- get_params(omicsData,block_cname,qc_cname, qc_val,

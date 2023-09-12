@@ -38,12 +38,10 @@ bc_power <- function(omicsData) {
                 sep = ' '))
   }
   
-  # check that if normalized we do not have non-backtransformed data
-  if(attr(omicsData,"data_info")$norm_info$is_normalized){
-    if(is.null(attr(omicsData,"data_info")$norm_info$params$bt_location)){
-      stop (paste("omicsData must be backtransformed if normalized when using power scaling so as 
-                  to avoid having negative values in the e_data"))
-    }
+  # we cannot have negative values
+  if(sum(omicsData$e_data < 0,na.rm=TRUE) > 0){
+    stop("Power scaling cannot run with expression data that has negative values (likely
+         due to normalization without a backtransform")
   }
 
   # important info for compiling pmart object later ----------------------------

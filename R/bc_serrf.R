@@ -96,6 +96,12 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
     stop ("SERRF requires no missing observations. Remove molecules with missing samples.")
   }
   
+  # we cannot have negative values
+  if(sum(omicsData$e_data < 0,na.rm=TRUE) > 0){
+    stop("SERRF cannot run with expression data that has negative values (likely
+         due to normalization without a backtransform")
+  }
+  
   # run the SERRF calculations -------------------------------------------------
   # set up row names to be the edata
   rownames(omicsData$e_data) <- omicsData$e_data[,edata_cnameCol]

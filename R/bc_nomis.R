@@ -91,6 +91,12 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
     stop ("NOMIS requires no missing observations. Remove molecules with missing samples.")
   }
   
+  # we cannot have negative values
+  if(sum(omicsData$e_data < 0,na.rm=TRUE) > 0){
+    stop("NOMIS cannot run with expression data that has negative values (likely
+         due to normalization without a backtransform")
+  }
+  
   # run the nomis calculations -------------------------------------------------
   
   # find the values needed for the normalize function
