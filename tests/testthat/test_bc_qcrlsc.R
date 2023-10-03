@@ -74,7 +74,7 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
                          order_cname = "RunOrderOverall"),
-               "There are too few QC data points that are not NA")
+               "The following molecules have too few non-missing QC data points in at least one")
   
   # we need to load the bigger data set 
   # Load the reduced metabolite data frames ------------------------------------

@@ -31,6 +31,12 @@ Object of same class as omicsData that has been undergone
 This function returns a pmart object that has been undergone QCRFSC
  batch effect correction
 }
+\details{
+QCRFSC is ran on the raw abundance values. However, it is recommended to 
+run imputation on the log2 scale. Therefore, when using QCRFSC, it is encouraged to
+transform the data to log2 scale for imputation, and then transform the data back to
+a raw abundance scale for bc_qcrfsc
+}
 \examples{
 library(malbacR)
 library(pmartR)
