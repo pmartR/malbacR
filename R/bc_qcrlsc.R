@@ -191,8 +191,9 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
       }),
       calc = purrr::map(qcEdata,function(edat){
         num_not_NA = rowSums(!is.na(edat))
-        too_few_data = sum(num_not_NA < 6)
-        return(too_few_data)
+        whichBad = which(num_not_NA < 6)
+        badMolecules = omicsData$e_data[whichBad,][[pmartR::get_edata_cname(omicsData)]]
+        return(badMolecules)
       }),
       begin_end_QC = purrr::map(batchDat,function(bd){
         begin_end_QC = purrr::map(batchDat,function(bd){
@@ -203,9 +204,10 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
       }))
   
   # see if we have any samples with too many samples still
-  total_bad = sum(unlist(batch_tib$calc,use.names = FALSE))
-  if(total_bad > 0){
-    stop("There are too few QC data points that are not NA in at least one sample-batch combination")
+  badMolecules = unique(unlist(batch_tib$calc,use.names = FALSE))
+  if(length(badMolecules) > 0){
+    stop(c(paste0("The following molecules have too few non-missing QC data points in at least one sample-batch \n combination. Please remove them prior to running bc_qcrlsc: ",'\n'),
+           paste0(' - ', badMolecules,'\n')))
   }
 
   start_end_qc = sum(unlist(batch_tib$begin_end_QC) != qc_val)

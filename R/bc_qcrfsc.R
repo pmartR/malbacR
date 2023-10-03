@@ -17,6 +17,11 @@
 #'  
 #' @return Object of same class as omicsData that has been undergone
 #'   QCRFSC normalization
+#'   
+#' @details QCRFSC is ran on the raw abundance values. However, it is recommended to 
+#' run imputation on the log2 scale. Therefore, when using QCRFSC, it is encouraged to
+#' transform the data to log2 scale for imputation, and then transform the data back to
+#' a raw abundance scale for bc_qcrfsc
 #' 
 #' @examples
 #' library(malbacR)
@@ -41,6 +46,14 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500){
     stop (paste("omicsData must be of class 'pepData', 'proData', 'metabData',",
                 "'lipidData', or 'nmrData'",
                 sep = ' '))
+  }
+  
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop (paste("For QCRFSC, omicsData must be ran with the scale 'abundance'."))
+  }
+  
+  if(is.null(attributes(omicsData)$group_DF)){
+    stop (paste("omicsData must have undergone group designation"))
   }
   
   # qc_cname - type of each sample
@@ -100,6 +113,46 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500){
   if(!(omicsData$f_data[,qc_cname][which(omicsData$f_data[[order_cname]] == minOrder)] == qc_val & 
        omicsData$f_data[,qc_cname][which(omicsData$f_data[[order_cname]] == maxOrder)] == qc_val)){
     stop ("QCRFSC requires that the first and last sample ran are QC samples")
+  }
+  
+  # make sure that we have enough observed values prior to imputation
+  # a bit challenging to check but alas we make do
+  if(!is.null(attributes(omicsData)$imputation_info)){
+    orig_edata = attributes(omicsData)$original_edata
+    if(sum(dim(orig_edata) == dim(omicsData$e_data)) != 2){
+      stop (paste("Imputation was applied prior to filtering. Please filter the data and then
+                  apply imputation on the data."))
+    }
+  }
+  
+  if(!is.null(attributes(omicsData)$imputation_info)){
+    orig_edata = attributes(omicsData)$original_edata
+    groupDat <- attr(omicsData,"group_DF")
+    id_col <- which(names(orig_edata) == get_edata_cname(omicsData))
+    ordering = omicsData$e_data[,id_col]
+    # Create a data frame with the ID columns and the minimum number of non-missing values per grouping
+    output <- orig_edata %>%
+      tidyr::pivot_longer(cols = -tidyselect::all_of(id_col), names_to = names(groupDat)[1], values_to = "value") %>%
+      dplyr::left_join(groupDat, by = pmartR::get_fdata_cname(omicsData)) %>%
+      dplyr::group_by(dplyr::across(tidyselect::all_of(id_col)), Group) %>%
+      {
+        if(inherits(omicsData, "seqData")) {
+          dplyr::summarise(., num_obs = sum(value != 0), .groups = "keep")
+        } else {
+          dplyr::summarise(., num_obs = sum(!is.na(value)),.groups = "keep")
+        }
+      } %>% 
+      dplyr::group_by(dplyr::across(tidyselect::all_of(id_col))) %>%
+      dplyr::summarise(min_num_obs = as.numeric(min(num_obs)),.groups = "keep") %>%
+      dplyr::ungroup() %>%
+      dplyr::rename(molecule = tidyselect::all_of(id_col)) %>%
+      dplyr::arrange(match(molecule,ordering)) %>%
+      data.frame()
+    if(min(output$min_num_obs,na.rm=T) < 2){
+      stop (paste("There is at least one molecule that did not have sufficient observed values per group
+                  prior to imputation. Please run molecule_filter using groups = TRUE prior to running
+                  imputation."))
+    }
   }
   
   # run QCRSFC -----------------------------------------------------------------

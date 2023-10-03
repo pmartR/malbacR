@@ -51,6 +51,11 @@ imputation <- function (omicsData) {
     stop ("There are no missing values in this dataset. Imputation is not necessary.")
   }
   
+  # recommend running imputation on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("Imputation is recommended on data that is on log2 scale. Please transform your data to be log2.")
+  }
+  
   # tranpose the data to be molecules as columns and rows are samples
   tdat <- t(omicsData$e_data[,-id_col]) %>%
     data.frame()
