@@ -16,9 +16,12 @@ test_that('opt function in RUVrand returns list of',{
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
                                 emeta_cname = 'Metabolite')
-  
+  molfilt <- molecule_filter(mdata)
+  mdata <- applyFilt(molfilt,mdata)
+  impObj <- imputation(mdata)
+  mdata <- apply_imputation(impObj,mdata)
   # data manipulation for setting up ruv-random
-  edat <- as.matrix(omicsData$e_data[,-1]) %>%
+  edat <- as.matrix(mdata$e_data[,-1]) %>%
     t()
   molecules <- omicsData$e_data[,1]
   
@@ -75,3 +78,4 @@ test_that('opt function in RUVrand returns list of',{
   # compare function vs manual
   expect_equal(optklambda,opt_manual)
 })
+

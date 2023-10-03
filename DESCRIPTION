@@ -23,6 +23,7 @@ Imports:
     mvdalab,
     norm,
     ranger,
+    randomForest,
     parallel,
     doParallel,
     foreach,
