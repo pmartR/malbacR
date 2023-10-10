@@ -4,7 +4,14 @@
 \alias{bc_qcrfsc}
 \title{QCRFSC batch correction}
 \usage{
-bc_qcrfsc(omicsData, qc_cname, qc_val, order_cname, ntree = 500)
+bc_qcrfsc(
+  omicsData,
+  qc_cname,
+  qc_val,
+  order_cname,
+  ntree = 500,
+  keep_qc = FALSE
+)
 }
 \arguments{
 \item{omicsData}{an object of the class 'pepData', 'proData', 'metabData',
@@ -22,6 +29,9 @@ indicates a QC sample}
 that contains the run order}
 
 \item{ntree}{number of trees to grow in random forest model (default is set to 500)}
+
+\item{keep_qc}{logical value to determine whether or not to include QC samples in the final output
+of the data (default is set to FALSE)}
 }
 \value{
 Object of same class as omicsData that has been undergone
@@ -44,7 +54,9 @@ data("pmart_amide")
 pmart_amide <- edata_transform(pmart_amide,"log2")
 impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-amide_qcrfsc <- bc_qcrfsc(omicsData = amide_imp,qc_cname = "group",qc_val = "QC",order_cname = "Injection_order")
+amide_imp_abund <- edata_transform(amide_imp,"abundance")
+amide_imp_abund <- group_designation(amide_imp_abund,main_effects = "group")
+amide_qcrfsc <- bc_qcrfsc(omicsData = amide_imp_abund,qc_cname = "group",qc_val = "QC",order_cname = "Injection_order",ntree = 500,keep_qc = FALSE)
 
 }
 \author{

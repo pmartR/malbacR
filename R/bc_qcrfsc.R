@@ -14,6 +14,8 @@
 #' @param order_cname character string giving name of column in omicsData$f_data
 #'  that contains the run order
 #' @param ntree number of trees to grow in random forest model (default is set to 500)
+#' @param keep_qc logical value to determine whether or not to include QC samples in the final output
+#' of the data (default is set to FALSE)
 #'  
 #' @return Object of same class as omicsData that has been undergone
 #'   QCRFSC normalization
@@ -30,13 +32,15 @@
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' impObj <- imputation(omicsData = pmart_amide)
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-#' amide_qcrfsc <- bc_qcrfsc(omicsData = amide_imp,qc_cname = "group",qc_val = "QC",order_cname = "Injection_order")
+#' amide_imp_abund <- edata_transform(amide_imp,"abundance")
+#' amide_imp_abund <- group_designation(amide_imp_abund,main_effects = "group")
+#' amide_qcrfsc <- bc_qcrfsc(omicsData = amide_imp_abund,qc_cname = "group",qc_val = "QC",order_cname = "Injection_order",ntree = 500,keep_qc = FALSE)
 #' 
 #' @author Damon Leach
 #' 
 #' @export
 #' 
-bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500){
+bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500,keep_qc = FALSE){
   # run through checks ---------------------------------------------------------
   
   # check that omicsData is of appropriate class #
@@ -99,6 +103,11 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500){
   
   if(length(omicsData$f_data[,order_cname]) != length(unique(omicsData$f_data[,order_cname]))){
     stop ("Input parameter order_cname cannot contain duplicate values for the overall run order")
+  }
+  
+  # keep_qc needs to be logical
+  if(!is.logical(keep_qc)){
+    stop ("Input parameter keep_qc must be a logical value (TRUE/FALSE)")
   }
   
   # check for missing values
@@ -200,22 +209,27 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500){
   # backtransform to 1000
   edata_matrix <- edata_matrix * 1000
   rownames(edata_matrix) <- edata[[edata_cname]]
-  
+
   # remove QC samples from edata
-  edata_loess = edata_matrix[,-qcid]
+  edata_loess = edata_matrix
+  fdata_qcrfsc <- fdata_ordered
+  
+  if(keep_qc == FALSE){
+    # filter out the old QC samples
+    edata_loess = edata_matrix[,-qcid]
+    fdata_qcrfsc <- fdata_ordered[fdata_ordered[,qc_cname] != qc_val,]
+    
+    # put fdata back into proper ordering
+    fdata_subset = fdata[fdata[[order_cname]] %in% fdata_qcrfsc[[order_cname]],]
+    fdata_qcrfsc <- fdata_qcrfsc[match(fdata_subset[[order_cname]],fdata_qcrfsc[[order_cname]]),]
+  }
+ 
   edata_qcrfsc <- edata_loess %>% data.frame()
   # put edata back into proper ordering from initial running
   edata_qcrfsc <- tibble::rownames_to_column(edata_qcrfsc, var = edata_cname)
   edata_ordering <- rank(match(colnames(edata_qcrfsc),colnames(omicsData$e_data)))
   edata_qcrfsc <- edata_qcrfsc %>%
     dplyr::select(colnames(edata_qcrfsc)[edata_ordering])
-  
-  # filter out the old QC samples
-  fdata_qcrfsc <- fdata_ordered[fdata_ordered[,qc_cname] != qc_val,]
-  
-  # put fdata back into proper ordering
-  fdata_subset = fdata[fdata[[order_cname]] %in% fdata_qcrfsc[[order_cname]],]
-  fdata_qcrfsc <- fdata_qcrfsc[match(fdata_subset[[order_cname]],fdata_qcrfsc[[order_cname]]),]
   
   # move back into pmart object ------------------------------------------------
   

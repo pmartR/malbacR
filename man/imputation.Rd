@@ -21,6 +21,7 @@ This function returns a pmart filter that has imputed missing values by "em" met
 \examples{
 library(malbacR)
 data("pmart_amide")
+pmart_amide <- edata_transform(pmart_amide,"log2")
 impFilt <- imputation(pmart_amide)
 
 }

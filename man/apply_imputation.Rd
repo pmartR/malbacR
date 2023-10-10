@@ -24,6 +24,7 @@ This function returns a pmart object that has undergone imputation
 \examples{
 library(malbacR)
 data("pmart_amide")
+pmart_amide <- edata_transform(pmart_amide,"log2")
 impFilt <- imputation(pmart_amide)
 imputed_data <- apply_imputation(impFilt,pmart_amide)
 
