@@ -105,9 +105,14 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500,keep_qc 
     stop ("Input parameter order_cname cannot contain duplicate values for the overall run order")
   }
   
-  # keep_qc needs to be logical
-  if(!is.logical(keep_qc)){
-    stop ("Input parameter keep_qc must be a logical value (TRUE/FALSE)")
+  # check that value in keep_qc is logical
+  if (!is.logical(keep_qc)) {
+    stop("Input parameter keep_qc must be logical (either TRUE or FALSE)")
+  }
+  
+  # check that value in keep_qc is length 1
+  if (length(keep_qc) != 1) {
+    stop("Input parameter qc_val must be of length 1 (e.g. vector containing a single element).")
   }
   
   # check for missing values
@@ -305,8 +310,17 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500,keep_qc 
   )
   
   # Add the group information to the group_DF attribute in the omicsData object.
-  attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
-  
+  if(!is.null(attr(omicsData,"group_DF"))){
+    group_id_col = which.max(colSums(fdata == attr(omicsData,"group_DF")$Group))
+    group_name = names(fdata)[group_id_col]
+    batch_name = NULL
+    if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
+      batch_id_col = which((names(fdata) %in% names(attributes(attr(omicsData,"group_DF"))$batch_id)) & (names(fdata) != fdata_cname))
+      batch_name = names(fdata)[batch_id_col]
+    }
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_name,batch_id = batch_name)
+  }
+
   # Update the data_info attribute.
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,

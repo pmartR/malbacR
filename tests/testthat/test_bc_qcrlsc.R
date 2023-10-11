@@ -68,6 +68,23 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
                          order_cname = "BatchName"),
                "Values in order_cname column")
   
+  # keep_qc must be of length 1
+  expect_error(bc_qcrlsc(omicsData = mdata,
+                         block_cname = "BatchNum",
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall",
+                         keep_qc = c(TRUE,FALSE)),
+               "Input parameter qc_val must be of length 1")
+  # keep_qc must be logical
+  expect_error(bc_qcrlsc(omicsData = mdata,
+                         block_cname = "BatchNum",
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall",
+                         keep_qc = "True"),
+               "Input parameter keep_qc must be logical")
+  
   # error out if we do not have enough QC samples
   expect_error(bc_qcrlsc(omicsData = mdata,
                          block_cname = "BatchNum",
@@ -132,9 +149,9 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
                ncol(udn_QC$f_data))
   
   # Attribute check time -------------------------------------------------------
-  # inspect attributes of bc_qcrlsc data frame
-  expect_identical(attr(mdata4,"group_DF"),
-               attr(udn_QC,"group_DF"))
+  og_group_without_QC = attr(mdata4,"group_DF")
+  expect_identical(data.frame(og_group_without_QC),
+                   data.frame(attr(udn_QC,"group_DF")))
   expect_identical(attr(mdata4, 'cnames'),
                    attr(udn_QC, 'cnames'))
   # all information other than batch info should stay the same
@@ -194,8 +211,9 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
   
   # Attribute check time (with emeta) ------------------------------------------
   # inspect attributes of bc_qcrlsc data frame
-  expect_identical(attr(udn_with_emet,"group_DF"),
-                   attr(udn_QC2,"group_DF"))
+  og_group_without_QC = attr(udn_with_emet,"group_DF")
+  expect_identical(data.frame(og_group_without_QC),
+                   data.frame(attr(udn_QC2,"group_DF")))
   expect_identical(attr(udn_with_emet, 'cnames'),
                    attr(udn_QC2, 'cnames'))
   # look at data_info

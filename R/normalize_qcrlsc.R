@@ -35,7 +35,8 @@ normalize_qcrlsc <-
            block_cname,
            qc_cname,
            qc_ind,
-           backtransform = FALSE) {
+           backtransform = FALSE,
+           keep_qc = FALSE) {
     ### initial checks ###
 
     if (!class(omicsData_filt) %in% c("metabData", "lipidData", "pepData", "proData")) {
@@ -217,11 +218,15 @@ normalize_qcrlsc <-
     attributes(output_data)$data_info$data_norm <- TRUE
 
     # filter out QC samples #
-    inds <- which(output_data$f_data[, qc_cname] == qc_ind)
-    to_remove <- output_data$f_data[inds, samp_cname]
-
-    myfilter <- pmartR::custom_filter(output_data, f_data_remove = to_remove)
-    output_data2 <- pmartR::applyFilt(myfilter, output_data)
-
+    if(keep_qc == FALSE){
+      inds <- which(output_data$f_data[, qc_cname] == qc_ind)
+      to_remove <- output_data$f_data[inds, samp_cname]
+      
+      myfilter <- pmartR::custom_filter(output_data, f_data_remove = to_remove)
+      output_data2 <- pmartR::applyFilt(myfilter, output_data)
+    } else {
+      output_data2 <- output_data
+    }
+  
     return(output_data2)
   }

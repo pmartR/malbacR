@@ -39,12 +39,12 @@
 #'                                apply_norm = TRUE,backtransform = TRUE)
 #' amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
 #'                           qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
-#'                           missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)}
+#'                           missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
 #'  
 #' @export
 bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
                    order_cname,missing_thresh = 0.5,rsd_thresh = 0.3,
-                   backtransform = FALSE) {
+                   backtransform = FALSE,keep_qc = FALSE) {
   
   # run a plethora of checks for this to run -----------------------------------
   if (!class(omicsData) %in% c("metabData", "lipidData", "pepData", "proData")) {
@@ -71,7 +71,6 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
   }
   
   # values in block_cname need to be numeric for this to run I believe
-  
   if (length(qc_cname) != 1) {
     stop(
       "Input parameter qc_cname must be of length 1 (e.g. vector containing a single element)."
@@ -114,6 +113,16 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
     stop(
       "Values in order_cname column (in f_data component of omicsData) must be numeric"
     )
+  }
+  
+  # check that value in keep_qc is logical
+  if (!is.logical(keep_qc)) {
+    stop("Input parameter keep_qc must be logical (either TRUE or FALSE)")
+  }
+  
+  # check that value in keep_qc is length 1
+  if (length(keep_qc) != 1) {
+    stop("Input parameter qc_val must be of length 1 (e.g. vector containing a single element).")
   }
   
   # check that backtransform is logical #
@@ -240,7 +249,8 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
                    block_cname = block_cname,
                    qc_cname = qc_cname,
                    qc_ind = qc_val,
-                   backtransform = backtransform))
+                   backtransform = backtransform,
+                   keep_qc = keep_qc))
   
   # reorder the data as it may have shifted around
   # find the original data order
@@ -251,10 +261,12 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
   pmartObj$e_data <- pmartObj$e_data[,proper_order]
   
   # update the batch column back
-  qc_samples <- which(omicsData$f_data[,qc_cname] == qc_val)
-  original_batch_names <- original_batch_names[-qc_samples]
-  pmartObj$f_data[,block_cname] <- original_batch_names
-
+  if(keep_qc == FALSE){
+    qc_samples <- which(omicsData$f_data[,qc_cname] == qc_val)
+    original_batch_names <- original_batch_names[-qc_samples]
+    pmartObj$f_data[,block_cname] <- original_batch_names
+  }
+  
   # pmart object creation time --------------------------------------------------
 
   # Update the data_info attribute.
@@ -271,7 +283,7 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
   )
   
   # Add the group information to the group_DF attribute in the omicsData object.
-  attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
+  #attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
   
   # Update the data_info attribute.
   attributes(pmartObj)$data_info$batch_info <- list(

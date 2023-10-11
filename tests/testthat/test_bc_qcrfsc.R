@@ -20,6 +20,25 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   attributes(mdata)$data_info$data_scale <- "log2"
   
   # Run through the different warnings! ----------------------------------------
+  # must be run on abundance scale
+  # must be a character value
+  expect_error(bc_qcrfsc(omicsData = mdata,
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall"),
+               "For QCRFSC, omicsData must be ran with the scale 'abundance'")
+  # so we fix this for future process
+  mdata <- pmartR::edata_transform(mdata,"abundance")
+  
+  # must undergo group designation
+  expect_error(bc_qcrfsc(omicsData = mdata,
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall"),
+               "omicsData must have undergone group designation")
+  # so add in group designation
+  mdata <- group_designation(mdata,main_effects = "Age")
+  
   # QCCNAME
   # must be a character value
   expect_error(bc_qcrfsc(omicsData = mdata,
@@ -52,12 +71,22 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
                          qc_val = "QC",
                          order_cname = "RunOrderOverall"),
                "Input parameter qc_val must be a value in qc_cname column")
-  # qc_val must be of length 1
-  expect_error(bc_qcrfsc(omicsData = mdata,
+  # keep_qc must be of length 1
+  expect_error(bc_qcrlsc(omicsData = mdata,
+                         block_cname = "BatchNum",
                          qc_cname = "QC",
-                         qc_val = c("QC","QC.NIST"),
-                         order_cname = "RunOrderOverall"),
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall",
+                         keep_qc = c(TRUE,FALSE)),
                "Input parameter qc_val must be of length 1")
+  # keep_qc must be logical
+  expect_error(bc_qcrlsc(omicsData = mdata,
+                         block_cname = "BatchNum",
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall",
+                         keep_qc = "True"),
+               "Input parameter keep_qc must be logical")
   # ORDERCNAME
   # must be a character
   expect_error(bc_qcrfsc(omicsData = mdata,
@@ -99,10 +128,12 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
                "QCRFSC requires no missing observations. Remove molecules with missing samples.")
   
   # apply imputation to remove missing values
-  molfilt <- molecule_filter(mdata)
+  molfilt <- molecule_filter(mdata,use_groups = TRUE)
   mdata <- applyFilt(molfilt,mdata)
-  impObj <- imputation(mdata)
-  mdata_imp <- apply_imputation(impObj,mdata)
+  mdata_log <- pmartR::edata_transform(mdata,"log2")
+  impObj <- imputation(mdata_log)
+  mdata_imp <- apply_imputation(impObj,mdata_log)
+  mdata_imp <- pmartR::edata_transform(mdata_imp,"abundance")
   
   # error out if we do not have a QC at the beginning and end of each batch
   # update some QC values so that we error out
@@ -139,8 +170,9 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   
   # Attribute check time -------------------------------------------------------
   # inspect attributes of bc_qcrfsc data frame
-  expect_identical(attr(mdata,"group_DF"),
-               attr(udn_QC,"group_DF"))
+  og_group_without_QC = attr(mdata,"group_DF") %>% dplyr::filter(Group != "QC.NIST")
+  expect_identical(data.frame(og_group_without_QC),
+               data.frame(attr(udn_QC,"group_DF")))
   expect_identical(attr(mdata, 'cnames'),
                    attr(udn_QC, 'cnames'))
   # all information other than batch info should stay the same
@@ -175,10 +207,13 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   attr(udn_with_emet,"data_info") <- attr(mdata,"data_info")
   
   # apply imputation to remove missing values
-  molfilt <- molecule_filter(udn_with_emet)
+  udn_with_emet <- group_designation(udn_with_emet,main_effects = "Age")
+  molfilt <- molecule_filter(udn_with_emet,use_groups = TRUE)
   udn_with_emet <- applyFilt(molfilt,udn_with_emet)
-  impObj <- imputation(udn_with_emet)
-  udn_with_emet <- apply_imputation(impObj,udn_with_emet)
+  udn_with_emet_log <- pmartR::edata_transform(udn_with_emet,"log2")
+  impObj <- imputation(udn_with_emet_log)
+  udn_with_emet <- apply_imputation(impObj,udn_with_emet_log)
+  udn_with_emet <- pmartR::edata_transform(udn_with_emet,"abundance")
   
   # run the batch correction!
   udn_QC2 <- bc_qcrfsc(omicsData = udn_with_emet,
@@ -203,8 +238,9 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   
   # Attribute check time (with emeta) ------------------------------------------
   # inspect attributes of bc_qcrfsc data frame
-  expect_identical(attr(udn_with_emet,"group_DF"),
-                   attr(udn_QC2,"group_DF"))
+  og_group_without_QC = attr(udn_with_emet,"group_DF") %>% dplyr::filter(Group != "QC.NIST")
+  expect_identical(data.frame(og_group_without_QC),
+                   data.frame(attr(udn_QC2,"group_DF")))
   expect_identical(attr(udn_with_emet, 'cnames'),
                    attr(udn_QC2, 'cnames'))
   # look at data_info

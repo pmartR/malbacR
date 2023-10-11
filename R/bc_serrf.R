@@ -318,7 +318,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
         all_data_var_num_nq = which(colnames(training_dat) == colnames(trn)[i])
         abund_val_nq_median = median(testing_dat[,all_data_var_num_nq],na.rm=T)
         
-        # now calculate serff adjsuted values
+        # now calculate serff adjusted values
         norm_vals_bqc = abund_val_bqc/((pred_bqc + abund_val_bqc_mean)/abund_val_qc_median)
         norm_vals_bnq = abund_val_bnq/((pred_bnq + abund_val_bnq_mean)/abund_val_nq_median)
         serrf_bqc = norm_vals_bqc/(median(norm_vals_bqc,na.rm=T)/abund_val_qc_median)
@@ -426,7 +426,16 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   )
   
   # Add the group information to the group_DF attribute in the omicsData object.
-  attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
+  if(!is.null(attr(omicsData,"group_DF"))){
+    group_id_col = which.max(colSums(fdata == attr(omicsData,"group_DF")$Group))
+    group_name = names(fdata)[group_id_col]
+    batch_name = NULL
+    if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
+      batch_id_col = which((names(fdata) %in% names(attributes(attr(omicsData,"group_DF"))$batch_id)) & (names(fdata) != fdata_cname))
+      batch_name = names(fdata)[batch_id_col]
+    }
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_name,batch_id = batch_name)
+  }
   
   # Update the data_info attribute.
   attributes(pmartObj)$data_info$batch_info <- list(
