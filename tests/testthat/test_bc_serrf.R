@@ -106,7 +106,9 @@ test_that('bc_serrf returns the correct data frame and attributes',{
   # check filters
   expect_equal(length(attr(mdataImp,"filters")),length(attr(udn_serrf,"filters")))
   # check group_DF
-  expect_equal(attr(mdataImp,"group_DF"),attr(udn_serrf,"group_DF"))
+  og_group_without_QC = attr(mdataImp,"group_DF") %>% dplyr::filter(Group != "QC.NIST")
+  expect_identical(data.frame(og_group_without_QC),
+                   data.frame(attr(udn_serrf,"group_DF")))
   
   # batch info should be updated
   expect_identical(attributes(udn_serrf)$data_info$batch_info,

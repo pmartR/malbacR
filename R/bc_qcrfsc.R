@@ -15,7 +15,7 @@
 #'  that contains the run order
 #' @param ntree number of trees to grow in random forest model (default is set to 500)
 #' @param keep_qc logical value to determine whether or not to include QC samples in the final output
-#' of the data (default is set to FALSE)
+#'   of the data (default is set to FALSE)
 #'  
 #' @return Object of same class as omicsData that has been undergone
 #'   QCRFSC normalization

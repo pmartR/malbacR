@@ -10,7 +10,8 @@ normalize_qcrlsc(
   block_cname,
   qc_cname,
   qc_ind,
-  backtransform = FALSE
+  backtransform = FALSE,
+  keep_qc = FALSE
 )
 }
 \arguments{
@@ -36,6 +37,9 @@ indicates a QC sample}
 the data to put the normalized data back on the same scale as the original
 data. Defaults to FALSE. If TRUE, the median of the y-values of the loess
 curve is added to the normalized value for each biomolecule for each batch.}
+
+\item{keep_qc}{logical value to determine whether or not to include QC samples in the final output
+of the data (default is set to FALSE)}
 }
 \value{
 omicsData object of same class as omicsData_filt, where e_data contains the QC-RLSC normalized values

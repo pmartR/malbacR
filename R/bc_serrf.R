@@ -301,6 +301,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
         predictor_vars = paste0("var",seq(from = 1, to = length(colnames(norm_dat)[sel_var]),by = 1))
         colnames(train_data) = c("y",predictor_vars)
         colnames(test_data) = predictor_vars
+        set.seed(1)
         model = ranger::ranger(y ~ ., data = train_data)
         
         # begin adjusting the normalized values

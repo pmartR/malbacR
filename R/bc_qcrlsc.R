@@ -23,6 +23,8 @@
 #'   the data to put the normalized data back on the same scale as the original
 #'   data. Defaults to FALSE. If TRUE, the median of the y-values of the loess
 #'   curve is added to the normalized value for each biomolecule for each batch
+#' @param keep_qc logical value to determine whether or not to include QC samples in the final output
+#' of the data (default is set to FALSE)
 #'
 #' @author Damon Leach
 #' 
@@ -40,6 +42,7 @@
 #' amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
 #'                           qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
 #'                           missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
+#' }
 #'  
 #' @export
 bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,

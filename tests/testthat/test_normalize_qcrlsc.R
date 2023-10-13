@@ -90,14 +90,27 @@ test_that('normalize_qcrlsc runs QC-RLSC on the data', {
                                 backtransform = FALSE),
                "The value for qc_ind is not present in the column specified by qc_cname")
   
-  # backtransform needs to be logical
+  # backtransform needs to be length 1
   expect_error(malbacR:::normalize_qcrlsc(omicsData = mdataFilt,
                                 optimal_params = params_obj$final_ests,
                                 block_cname = "BatchNum",
                                 qc_cname = "QC",
                                 qc_ind = "QC.NIST",
-                                backtransform = 2),
-               "Input parameter backtransform must be of class 'logical'")
+                                backtransform = TRUE,
+                                keep_qc = c(TRUE,FALSE)),
+               "Input parameter qc_val must be of length 1")
+  
+  # keep_qc needs to be logical
+  expect_error(malbacR:::normalize_qcrlsc(omicsData = mdataFilt,
+                                          optimal_params = params_obj$final_ests,
+                                          block_cname = "BatchNum",
+                                          qc_cname = "QC",
+                                          qc_ind = "QC.NIST",
+                                          backtransform = TRUE,
+                                          keep_qc = "True"),
+               "Input parameter keep_qc must be logical")
+  
+  # keep_qc needs to be logical
   
   # run normalize_qcrlsc function ----------------------------------------------
   mdata_qcrlsc <- malbacR:::normalize_qcrlsc(omicsData = mdataFilt,

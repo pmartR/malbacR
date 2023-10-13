@@ -15,7 +15,8 @@ test_that('loglik function in RUVrand returns correct value',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
+                                emeta_cname = 'Metabolite',
+                                data_scale = 'log2')
   molfilt <- molecule_filter(mdata)
   mdata <- applyFilt(molfilt,mdata)
   impObj <- imputation(mdata)

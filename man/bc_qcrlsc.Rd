@@ -12,7 +12,8 @@ bc_qcrlsc(
   order_cname,
   missing_thresh = 0.5,
   rsd_thresh = 0.3,
-  backtransform = FALSE
+  backtransform = FALSE,
+  keep_qc = FALSE
 )
 }
 \arguments{
@@ -44,6 +45,9 @@ details for more information. A value of 0.3 is reasonable.}
 the data to put the normalized data back on the same scale as the original
 data. Defaults to FALSE. If TRUE, the median of the y-values of the loess
 curve is added to the normalized value for each biomolecule for each batch}
+
+\item{keep_qc}{logical value to determine whether or not to include QC samples in the final output
+of the data (default is set to FALSE)}
 }
 \value{
 omicsData object of same class as omicsData_filt, where e_data contains the QC-RLSC normalized values
@@ -62,7 +66,8 @@ pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median"
                                apply_norm = TRUE,backtransform = TRUE)
 amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
                           qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
-                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)}
+                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
+}
  
 }
 \author{
