@@ -21,7 +21,7 @@ malbacR depends on pmartR. There is a problem that causes pmartR to fail compili
 
 ## Tutorial:
 
-To get started, see the package documentation and function reference located [here](https://pmartr.github.io/malbacR/).
+To get started, see the package documentation and function reference located [here](https://github.com/pmartR/malbacR/tree/damon_develop/docs/articles).
 
 ## Data:
 

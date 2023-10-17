@@ -3,7 +3,7 @@ Type: Package
 Title: Mass spectrometry ALgorigthms for BAtch Correction
 Version: 0.1.0
 Date: 2021-09-16
-Authors@R: c(person("Kelly", "Stratton", email = "kelly.stratton@pnnl.gov", role = c("aut", "cre")), person("Lisa", "Bramer", email = "lisa.bramer@pnnl.gov", role = c("aut")))
+Authors@R: c(person("Damon","Leach",email = "damon.leach@pnnl.gov",role = c("aut","cre")),person("Kelly", "Stratton", email = "kelly.stratton@pnnl.gov", role = c("aut")), person("Lisa", "Bramer", email = "lisa.bramer@pnnl.gov", role = c("aut")))
 Maintainer: Kelly Stratton <kelly.stratton@pnnl.gov>
 Description: Provides algorithms for batch correction and normalization of mass-spectrometry-based data, as well as methods to assess the efficacy of the batch correction or normalization, and example datasets that can be used.
 License: BSD
