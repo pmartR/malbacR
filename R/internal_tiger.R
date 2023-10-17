@@ -595,3 +595,207 @@ run_TIGER_internal <- function(test_samples, train_samples,
   message("+ Completed.   ", Sys.time())
   test_samples
 }
+
+#' compute_RSD
+#' 
+#' This function computes RSD
+#' 
+#' @param input_data description
+#'  
+#' @return return tiger batch corrected results
+#' 
+#' @export
+#' 
+compute_RSD <- function(input_data) {
+  val_RSD <- sd(input_data, na.rm = TRUE) / mean(input_data, na.rm = TRUE)
+  val_RSD
+}
+
+#' select_variable
+#' 
+#' This function is an internal function run boxplots
+#' 
+#' @param train_num description
+#' @param test_num description
+#' @param train_batchID description
+#' @param test_batchID description
+#' @param selectVar_corType description
+#' @param selectVar_corMethod description
+#' @param selectVar_maxNum description
+#' @param selectVar_batchWise description
+#' @param coerce_numeric description
+#'  
+#' @return return tiger batch corrected results
+#' 
+#' @export
+#' 
+select_variable <- function(train_num, test_num = NULL,
+                            train_batchID = NULL, test_batchID = NULL,
+                            selectVar_corType   = c("cor", "pcor"),
+                            selectVar_corMethod = c("spearman", "pearson"),
+                            selectVar_minNum = 5, selectVar_maxNum = 10,
+                            selectVar_batchWise = FALSE,
+                            coerce_numeric = FALSE) {
+  
+  message("+ Selecting highly-correlated variables...   ", Sys.time())
+  
+  selectVar_corType   <- match.arg(selectVar_corType)
+  selectVar_corMethod <- match.arg(selectVar_corMethod)
+  
+  if(coerce_numeric) {
+    train_num <- as.data.frame(sapply(train_num, as.numeric))
+    idx_NA <- sapply(train_num, function(x) {
+      all(is.na(x))
+    })
+    
+    if (sum(idx_NA) > 0) {
+      train_num <- train_num[,!idx_NA]
+      warning("  ", sum(idx_NA), " column(s) in train_num removed due to non-numeric values." )
+    }
+    
+    if (!is.null(test_num)) {
+      test_num <- as.data.frame(sapply(test_num, as.numeric))
+      idx_NA <- sapply(test_num, function(x) {
+        all(is.na(x))
+      })
+      if (sum(idx_NA) > 0) {
+        test_num <- test_num[,!idx_NA]
+        warning("  ", sum(idx_NA), " column(s) in test_num removed due to non-numeric values." )
+      }
+    }
+  } else {
+    if (!all(sapply(train_num, is.numeric))) stop("  The values in train_num should be numeric!")
+    if (!is.null(test_num) & !all(sapply(test_num, is.numeric))) stop("  The values in test_num should be numeric!")
+  }
+  
+  if (!is.null(test_num)) {
+    if (!all(names(test_num) %in% names(train_num))) stop("  Variables in training and test data cannot match!")
+    train_num <- train_num[names(test_num)]
+  }
+  
+  selectVar_minNum <- ifelse(is.null(selectVar_minNum), 1, selectVar_minNum)
+  selectVar_maxNum <- ifelse(is.null(selectVar_maxNum), (ncol(train_num) - 1), selectVar_maxNum)
+  
+  selectVar_minNum <- max(as.integer(selectVar_minNum), 1)
+  selectVar_maxNum <- max(as.integer(selectVar_maxNum), 1)
+  
+  selectVar_maxNum <- min(selectVar_maxNum, ncol(train_num) - 1)
+  selectVar_minNum <- min(selectVar_minNum, selectVar_maxNum)
+  
+  if (selectVar_batchWise) {
+    train_num_list    <- split(train_num, f = train_batchID)
+    batch_names_train <- sort(names(train_num_list))
+    batch_names_len   <- length(batch_names_train)
+    
+    if (!is.null(test_num)) {
+      test_num_list     <- split(test_num,  f = test_batchID)
+      batch_names_test  <- sort(names(test_num_list))
+      
+      if (any(batch_names_train != batch_names_test) | batch_names_len != length(batch_names_test)) stop("  Batch names of train and test samples cannot match: their column names should be identical!")
+    } else test_num_list <- NULL
+    
+    selected_var_list <- lapply(1:batch_names_len, function(batch_name_idx) {
+      
+      one_batch_name <- batch_names_train[[batch_name_idx]]
+      message("  - Current batch: ", one_batch_name, "  (", batch_name_idx, "/", batch_names_len, ")")
+      
+      message("      Computing correlation coefficients...")
+      cor_info <- Internal.compute_cor(train_num = train_num_list[[one_batch_name]],
+                                       test_num = test_num_list[[one_batch_name]],
+                                       selectVar_corType = selectVar_corType,
+                                       selectVar_corMethod = selectVar_corMethod)
+      
+      message("      Selecting variables...")
+      selected_var <- Internal.select_variable(cor_info = cor_info,
+                                               selectVar_minNum = selectVar_minNum,
+                                               selectVar_maxNum = selectVar_maxNum)
+    })
+    names(selected_var_list) <- batch_names_train
+  } else {
+    message("  - Computing correlation coefficients...")
+    cor_info <- Internal.compute_cor(train_num = train_num, test_num = test_num,
+                                     selectVar_corType = selectVar_corType,
+                                     selectVar_corMethod = selectVar_corMethod)
+    message("  - Selecting variables...")
+    selected_var <- Internal.select_variable(cor_info = cor_info,
+                                             selectVar_minNum = selectVar_minNum,
+                                             selectVar_maxNum = selectVar_maxNum)
+    selected_var_list <- list(wholeDataset = selected_var)
+  }
+  
+  selected_var_list
+}
+
+#' Internal.boxplot.stats
+#' 
+#' This function is an internal function run boxplots
+#' 
+#' @param x description
+#' @param coef description
+#' @param do.conf description
+#' @param do.out description
+#'  
+#' @return return tiger batch corrected results
+#' 
+#' @export
+#' 
+Internal.boxplot.stats <- function(x, # borrowed from grDevices::boxplot.stats()
+                                   coef = 1.5, do.conf = TRUE, do.out = TRUE) {
+  if (coef < 0)
+    stop("'coef' must not be negative")
+  nna <- !is.na(x)
+  n <- sum(nna)
+  stats <- stats::fivenum(x, na.rm = TRUE)
+  iqr <- diff(stats[c(2, 4)])
+  names(iqr) <- NULL
+  if (coef == 0)
+    do.out <- FALSE
+  else {
+    lower_limit <- (stats[2L] - coef * iqr)
+    upper_limit <- (stats[4L] + coef * iqr)
+    names(lower_limit) <- NULL
+    names(upper_limit) <- NULL
+    out <- if (!is.na(iqr)) {
+      x < lower_limit | x > upper_limit
+    }
+    else !is.finite(x)
+    if (any(out[nna], na.rm = TRUE))
+      stats[c(1, 5)] <- range(x[!out], na.rm = TRUE)
+  }
+  conf <- if (do.conf)
+    stats[3L] + c(-1.58, 1.58) * iqr/sqrt(n)
+  list(stats = stats, n = n, conf = conf,
+       out = if (do.out) x[out & nna] else numeric(),
+       iqr = iqr, lower_limit = lower_limit, upper_limit = upper_limit)
+}
+
+#' Internal.remove_NA
+#' 
+#' This function is an internal function to remove NA values
+#' 
+#' @param input_data_num description
+#' @param data_label description
+#' @param replace_with_zero description
+#'  
+#' @return return tiger batch corrected results
+#' 
+#' @export
+#' 
+Internal.remove_NA <- function(input_data_num, data_label = NULL,
+                               replace_with_zero = FALSE) {
+  data_na_sample_idx <- apply(input_data_num, 1, function(x) any(is.na(x)))
+  data_na_sample_sum <- sum(data_na_sample_idx)
+  
+  if (data_na_sample_sum > 0) {
+    if (!is.null(data_label)) warning(paste0("    ", data_na_sample_sum, " sample(s) in ", data_label, " contain(s) NA."))
+    
+    if (replace_with_zero) {
+      input_data_num[is.na(input_data_num)] <- 0
+    } else {
+      input_data_num <- input_data_num[!data_na_sample_idx,]
+      if (nrow(input_data_num) == 0) stop(paste0("    Variable selection failed: ", data_label, " contain too many NA!"))
+    }
+  }
+  
+  input_data_num
+}
