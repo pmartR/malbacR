@@ -314,7 +314,7 @@ Internal.run_ensemble <- function(trainSet, testSet,
     set.seed(1)
     current_hyperparams <- as.list(rf_hyperparams[idx,])
     
-    folds_train <- Internal.createFolds2(1:length(trainSet$y), k = 5, returnTrain = TRUE)
+    folds_train <- Internal.createFolds(1:length(trainSet$y), k = 5, returnTrain = TRUE)
     
     res_folds <- lapply(folds_train, function(train_idx, rf_params) {
       
