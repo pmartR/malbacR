@@ -10,15 +10,8 @@ Internal.remove_NA(
   replace_with_zero = FALSE
 )
 }
-\arguments{
-\item{input_data_num}{description}
-
-\item{data_label}{description}
-
-\item{replace_with_zero}{description}
-}
 \value{
-return tiger batch corrected results
+data with NA values removed
 }
 \description{
 This function is an internal function to remove NA values

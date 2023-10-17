@@ -11,17 +11,8 @@ Internal.compute_cor(
   selectVar_corMethod = c("spearman", "pearson")
 )
 }
-\arguments{
-\item{train_num}{description}
-
-\item{test_num}{description}
-
-\item{selectVar_corType}{description}
-
-\item{selectVar_corMethod}{description}
-}
 \value{
-return created folds
+return correlation computed
 }
 \description{
 This function is an internal function to compute correlation

@@ -15,23 +15,23 @@ compute_targetVal(
 )
 }
 \arguments{
-\item{QC_num}{description}
+\item{QC_num}{a numeric data.frame including the metabolite values of quality control (QC) samples. Missing values and infinite values will not be taken into account. Row: sample. Column: metabolite variable. See Examples.}
 
-\item{sampleType}{description}
+\item{sampleType}{a vector corresponding to \code{QC_num} to specify the type of each QC sample. QC samples of the \strong{same type} should have the \strong{same type name}. See Examples.}
 
-\item{batchID}{description}
+\item{batchID}{a vector corresponding to \code{QC_num} to specify the batch of each sample. Ignored if \code{targetVal_batchWise = FALSE}. See Examples.}
 
-\item{targetVal_method}{description}
+\item{targetVal_method}{a character string specifying how the target values are computed. Can be \code{"mean"} (default) or \code{"median"}. See Details.}
 
-\item{targetVal_batchWise}{description}
+\item{targetVal_batchWise}{logical. If \code{TRUE}, the target values will be computed based on each batch, otherwise, based on the whole dataset. Setting \code{TRUE} might be useful if your dataset has very obvious batch effects, but this may also make the algorithm less robust. See Details. Default: \code{FALSE}.}
 
-\item{targetVal_removeOutlier}{description}
+\item{targetVal_removeOutlier}{logical. If \code{TRUE}, outliers will be removed before the computation. Outliers are determined with 1.5 * IQR (interquartile range) rule. We recommend turning this off when the target values are computed based on batches. See Details. Default: \code{!targetVal_batchWise}.}
 
-\item{coerce_numeric}{description}
+\item{coerce_numeric}{logical. If \code{TRUE}, values in \code{QC_num} will be coerced to numeric before the computation. The columns cannot be coerced will be removed (with warnings). See Examples. Default: \code{FALSE}.}
 }
 \value{
-return created folds
+the function returns a list of length one containing the target values computed on the whole dataset.
 }
 \description{
-This function to compute target values
+This function computes the target values for ensemble learning architecture
 }

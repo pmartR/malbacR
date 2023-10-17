@@ -6,15 +6,6 @@
 \usage{
 Internal.createFolds(y, k = 10, list = TRUE, returnTrain = FALSE)
 }
-\arguments{
-\item{y}{description}
-
-\item{k}{description}
-
-\item{list}{description}
-
-\item{returnTrain}{description}
-}
 \value{
 return created folds
 }

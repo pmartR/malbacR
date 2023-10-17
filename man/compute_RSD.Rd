@@ -6,12 +6,9 @@
 \usage{
 compute_RSD(input_data)
 }
-\arguments{
-\item{input_data}{description}
-}
 \value{
-return tiger batch corrected results
+return RSD
 }
 \description{
-This function computes RSD
+This function computes the relative standard deviation (RSD)
 }

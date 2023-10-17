@@ -18,27 +18,29 @@ select_variable(
 )
 }
 \arguments{
-\item{train_num}{description}
+\item{train_num}{a numeric data.frame \strong{only} including the metabolite values of training samples (can be quality control samples). Information such as injection order or well position need to be excluded. Row: sample. Column: metabolite variable. See Examples.}
 
-\item{test_num}{description}
+\item{test_num}{an optional numeric data.frame including the metabolite values of test samples (can be subject samples). If provided, the column names of \code{test_num} should correspond to the column names of \code{train_num}. Row: sample. Column: metabolite variable. If \code{NULL}, the variables will be selected based on \code{train_num} only. See Examples.}
 
-\item{train_batchID}{description}
+\item{train_batchID}{\code{NULL} or a vector corresponding to \code{train_num} to specify the batch of each sample. Ignored if \code{selectVar_batchWise = FALSE}. See Examples.}
 
-\item{test_batchID}{description}
+\item{test_batchID}{\code{NULL} or a vector corresponding to \code{test_num} to specify the batch of each sample. Ignored if \code{selectVar_batchWise = FALSE}. See Examples.}
 
-\item{selectVar_corType}{description}
+\item{selectVar_corType}{a character string indicating correlation (\code{"cor"}, default) or partial correlation (\code{"pcor"}) is to be used. Can be abbreviated. See Details. \strong{Note}: computing partial correlations of a large dataset can be very time-consuming.}
 
-\item{selectVar_corMethod}{description}
+\item{selectVar_corMethod}{a character string indicating which correlation coefficient is to be computed. One of \code{"spearman"} (default) or \code{"pearson"}. Can be abbreviated. See Details.}
 
-\item{selectVar_maxNum}{description}
+\item{selectVar_minNum}{an integer specifying the minimum number of the selected variables. If \code{NULL}, no limited, but 1 at least. See Details. Default: 5.}
 
-\item{selectVar_batchWise}{description}
+\item{selectVar_maxNum}{an integer specifying the maximum number of the selected variables. If \code{NULL}, no limited, but \code{ncol(train_num) - 1} at most. See Details. Default: 10.}
 
-\item{coerce_numeric}{description}
+\item{selectVar_batchWise}{(advanced) logical. Specify whether the variable selection should be performed based on each batch. Default: \code{FALSE}. \strong{Note}: if \code{TRUE}, batch ID of each sample are required. The support of batch-wise variable selection is provided for data requiring special processing (for example, data with strong batch effects). But in most case, batch-wise variable selection is not necessary. Setting \code{TRUE} might make the algorithm less robust. See Details.}
+
+\item{coerce_numeric}{logical. If \code{TRUE}, values in \code{train_num} and  \code{test_num} will be coerced to numeric before the computation. The columns cannot be coerced will be removed (with warnings). See Examples. Default: \code{FALSE}.}
 }
 \value{
-return tiger batch corrected results
+the function returns a list of length one containing the selected variables computed on the whole dataset.
 }
 \description{
-This function is an internal function run boxplots
+This function provides an advanced option to select metabolite variables from external dataset(s). The selected variables (as a list) can be further passed to argument \code{selectVar_external} in function \code{\link{run_TIGER}} for a customised data correction.
 }

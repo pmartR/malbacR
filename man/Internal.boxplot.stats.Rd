@@ -6,17 +6,8 @@
 \usage{
 Internal.boxplot.stats(x, coef = 1.5, do.conf = TRUE, do.out = TRUE)
 }
-\arguments{
-\item{x}{description}
-
-\item{coef}{description}
-
-\item{do.conf}{description}
-
-\item{do.out}{description}
-}
 \value{
-return tiger batch corrected results
+return boxplot statistics
 }
 \description{
 This function is an internal function run boxplots

@@ -13,20 +13,9 @@ Internal.run_ensemble(
   return_base_res = FALSE
 )
 }
-\arguments{
-\item{trainSet}{description}
-
-\item{testSet}{description}
-
-\item{mtry_percent}{description}
-
-\item{nodesize_percent}{description}
-
-\item{return_base_res}{description}
-}
 \value{
-return created folds
+return ensemble learning
 }
 \description{
-This function is an internal function to run ensembl learning
+This function is an internal function to run ensemble learning
 }
