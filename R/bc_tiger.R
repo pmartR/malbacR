@@ -180,7 +180,7 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,position_cname = NULL,
   # set seed
   set.seed(1)
   # include injection order and well position into feature set:
-  udnTIGER <- TIGERr::run_TIGER(test_samples = test_samples,
+  udnTIGER <- run_TIGER_internal(test_samples = test_samples,
                         train_samples = train_samples,
                         col_sampleID  = fdata_cname,     # input column name
                         col_sampleType = sampletype_cname,  # input column name
