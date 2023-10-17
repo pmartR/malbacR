@@ -218,6 +218,72 @@ Internal.compute_errorRatio <- function(rawVal, sampleType,
   out_df
 }
 
+#' compute_targetVal
+#' 
+#' This function to compute target values
+#' 
+#' @param QC_num description
+#' @param sampleType description
+#' @param batchID description
+#' @param targetVal_method description
+#' @param targetVal_batchWise description
+#' @param targetVal_removeOutlier description
+#' @param coerce_numeric description
+#'  
+#' @return return created folds
+#' 
+#' @export
+#' 
+compute_targetVal <- function(QC_num, sampleType, batchID = NULL,
+                              targetVal_method = c("mean", "median"),
+                              targetVal_batchWise = FALSE,
+                              targetVal_removeOutlier = !targetVal_batchWise,
+                              coerce_numeric = FALSE) {
+  
+  message("+ Computing target values...   ", Sys.time())
+  
+  targetVal_method <- match.arg(targetVal_method)
+  
+  sampleType <- as.factor(sampleType)
+  batchID    <- as.factor(batchID)
+  
+  if(coerce_numeric) {
+    QC_num <- as.data.frame(sapply(QC_num, as.numeric))
+    idx_NA <- sapply(QC_num, function(x) {
+      all(is.na(x))
+    })
+    
+    if (sum(idx_NA) > 0) {
+      QC_num <- QC_num[,!idx_NA]
+      warning("  ", sum(idx_NA), " column(s) in QC_num removed due to non-numeric values." )
+    }
+  } else {
+    if (!all(sapply(QC_num, is.numeric))) stop("  The values in QC_num should be numeric!")
+  }
+  
+  if (targetVal_batchWise) {
+    target_values <- aggregate(QC_num, by = list(batch = batchID, sample = sampleType),
+                               FUN = Internal.compute_targetVal, targetVal_method = targetVal_method,
+                               targetVal_removeOutlier = targetVal_removeOutlier)
+    batchID <- target_values$batch
+    target_values$batch <- NULL
+    target_values_list <- split(target_values, f = batchID)
+  } else {
+    target_values_list <- list(wholeDataset = aggregate(QC_num,
+                                                        by = list(sample = sampleType),
+                                                        FUN =  Internal.compute_targetVal,
+                                                        targetVal_method = targetVal_method,
+                                                        targetVal_removeOutlier = targetVal_removeOutlier))
+  }
+  
+  target_values <- lapply(target_values_list, function(x) {
+    row.names(x) <- x$sample
+    x$sample <- NULL
+    x
+  })
+  target_values
+}
+
 #' Internal.run_ensemble
 #' 
 #' This function is an internal function to run ensembl learning
