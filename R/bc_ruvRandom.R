@@ -166,7 +166,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
                                     e_meta = emet,
                                     emeta_cname = emet_cname)
   }
-  else if(inherits(omicsData,"lipidDa}ta")){
+  else if(inherits(omicsData,"lipidData")){
     pmartObj = pmartR::as.lipidData(e_data = edatRUV,
                                     edata_cname = edat_cname,
                                     f_data = fdat,
