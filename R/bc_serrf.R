@@ -427,16 +427,17 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   )
   
   # Add the group information to the group_DF attribute in the omicsData object.
-  if(!is.null(attr(omicsData,"group_DF"))){
-    group_id_col = which.max(colSums(fdata == attr(omicsData,"group_DF")$Group))
-    group_name = names(fdata)[group_id_col]
-    batch_name = NULL
-    if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
-      batch_id_col = which((names(fdata) %in% names(attributes(attr(omicsData,"group_DF"))$batch_id)) & (names(fdata) != fdata_cname))
-      batch_name = names(fdata)[batch_id_col]
-    }
-    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_name,batch_id = batch_name)
-  }
+  # if(!is.null(attr(omicsData,"group_DF"))){
+  #   group_id_col = which.max(colSums(fdata == attr(omicsData,"group_DF")$Group))
+  #   group_name = names(fdata)[group_id_col]
+  #   batch_name = NULL
+  #   if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
+  #     batch_id_col = which((names(fdata) %in% names(attributes(attr(omicsData,"group_DF"))$batch_id)) & (names(fdata) != fdata_cname))
+  #     batch_name = names(fdata)[batch_id_col]
+  #   }
+  #   pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_name,batch_id = batch_name)
+  # }
+  attr(pmartObj,"group_DF") = attr(omicsData,"group_DF")
   
   # Update the data_info attribute.
   attributes(pmartObj)$data_info$batch_info <- list(
