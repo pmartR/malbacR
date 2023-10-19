@@ -133,7 +133,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
   to_remove = which(edatRUV[,edat_cname] %in% bad_eggs[,emet_cname])
   edatRUV <- edatRUV[-to_remove,]
   
-  # create the pmart object #
+  # create the pmart object based on type of omics #
   if(inherits(omicsData,"isobaricpepData") & inherits(omicsData,"pepData")){
     pmartObj = pmartR::as.isobaricpepData(e_data = edatRUV,
                                           edata_cname = edat_cname,
