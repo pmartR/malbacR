@@ -175,7 +175,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
                                     emeta_cname = emet_cname)
   }
   else if(inherits(omicsData,"nmrData")){
-    pmartObj = pmartR::as.nmrData(e_data = edatRUV,
+    pmartObj = pmartR::as.nmrData(e_data = edatRUV, 
                                   edata_cname = edat_cname,
                                   f_data = fdat,
                                   fdata_cname = fdat_cname,
