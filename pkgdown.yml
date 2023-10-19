@@ -1,0 +1,8 @@
+pandoc: 2.19.2
+pkgdown: 2.0.7
+pkgdown_sha: ~
+articles:
+  malbacR_vignette_condensed_filtered: malbacR_vignette_condensed_filtered.html
+  malbacR_vignette_expanded_unfiltered: malbacR_vignette_expanded_unfiltered.html
+last_built: 2023-10-19T13:22Z
+
