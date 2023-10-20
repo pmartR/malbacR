@@ -145,9 +145,9 @@ bc_waveica <- function(omicsData,injection_cname, alpha = 0, cutoff = 0.1, K = 1
   
   # find the important values for pmart creation
   edat_cname = pmartR::get_edata_cname(omicsData)
-  fdat = omicsData$f_data[omicsData$f_data$SampleID %in% colnames(edatWAVE),]
   fdat_cname = pmartR::get_fdata_cname(omicsData)
-  
+  fdat = omicsData$f_data[omicsData$f_data[[fdat_cname]] %in% colnames(edatWAVE),]
+
   # assume emeta is NULL unless otherwise stated
   emet_cname = NULL
   emet = NULL

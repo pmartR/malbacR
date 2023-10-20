@@ -83,6 +83,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
   
   # find the parameter ctl (the negative controls)
   edat_cname = pmartR::get_edata_cname(omicsData)
+  fdata_cname = pmartR::get_fdata_cname(omicsData)
   proper_order_ctl <- omicsData$e_data %>%
     dplyr::select(dplyr::all_of(edat_cname)) %>%
     dplyr::left_join(omicsData$e_meta)
@@ -114,7 +115,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
   # find the important values for pmart creation
   
   # find the individual data sets
-  fdat = omicsData$f_data[omicsData$f_data$SampleID %in% colnames(edatRUV),]
+  fdat = omicsData$f_data[omicsData$f_data[[fdata_cname]] %in% colnames(edatRUV),]
   emet <- omicsData$e_meta
   
   # get the variables we need to create pmart object

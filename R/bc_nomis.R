@@ -147,7 +147,8 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   
   # find the important values for pmart creation
   edat_cname = pmartR::get_edata_cname(omicsData)
-  fdat = omicsData$f_data[omicsData$f_data$SampleID %in% colnames(edatNomis),]
+  fdata_cname = pmartR::get_fdata_cname(omicsData)
+  fdat = omicsData$f_data[omicsData$f_data[[fdata_cname]] %in% colnames(edatNomis),]
   fdat_cname = pmartR::get_fdata_cname(omicsData)
   
   # assume emeta is NULL unless otherwise stated
