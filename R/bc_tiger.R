@@ -300,9 +300,9 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,group_cname,position_c
   
   # check group designation
   # since we are removing samples if keep_qc != TRUE
-  if(!is.null(attributes(attr(pmartObj,"group_DF"))$batch_id)){
-    batch_id_col = which(colnames(attributes(attr(pmartObj,"group_DF"))$batch_id) != fdata_cname)
-    batch_id_name = colnames(attributes(attr(pmartObj,"group_DF"))$batch_id)[batch_id_col]
+  if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
+    batch_id_col = which(colnames(attributes(attr(omicsData,"group_DF"))$batch_id) != fdata_cname)
+    batch_id_name = colnames(attributes(attr(omicsData,"group_DF"))$batch_id)[batch_id_col]
     pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname,
                                           batch_id = batch_id_name)
   } else {
