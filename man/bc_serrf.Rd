@@ -4,7 +4,7 @@
 \alias{bc_serrf}
 \title{SERRF batch correction}
 \usage{
-bc_serrf(omicsData, sampletype_cname, test_val)
+bc_serrf(omicsData, sampletype_cname, test_val, group_cname)
 }
 \arguments{
 \item{omicsData}{an object of the class 'pepData', 'proData', 'metabData',
@@ -36,7 +36,7 @@ pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median"
                                apply_norm = TRUE,backtransform = TRUE)
 impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC")
+amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC",group_cname = "group")
 
 }
 \author{

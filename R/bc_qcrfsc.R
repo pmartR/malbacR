@@ -13,6 +13,8 @@
 #'  indicates a QC sample
 #' @param order_cname character string giving name of column in omicsData$f_data
 #'  that contains the run order
+#' @param group_cname character string giving the name of column in omicsData$f_data
+#'  that contains the variable indicating the biological groups of interest
 #' @param ntree number of trees to grow in random forest model (default is set to 500)
 #' @param keep_qc logical value to determine whether or not to include QC samples in the final output
 #'   of the data (default is set to FALSE)
@@ -34,13 +36,13 @@
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 #' amide_imp_abund <- edata_transform(amide_imp,"abundance")
 #' amide_imp_abund <- group_designation(amide_imp_abund,main_effects = "group")
-#' amide_qcrfsc <- bc_qcrfsc(omicsData = amide_imp_abund,qc_cname = "group",qc_val = "QC",order_cname = "Injection_order",ntree = 500,keep_qc = FALSE)
+#' amide_qcrfsc <- bc_qcrfsc(omicsData = amide_imp_abund,qc_cname = "group",qc_val = "QC",order_cname = "Injection_order",group_cname = "group", ntree = 500,keep_qc = FALSE)
 #' 
 #' @author Damon Leach
 #' 
 #' @export
 #' 
-bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500,keep_qc = FALSE){
+bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,group_cname,ntree = 500,keep_qc = FALSE){
   # run through checks ---------------------------------------------------------
   
   # check that omicsData is of appropriate class #
@@ -103,6 +105,19 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500,keep_qc 
   
   if(length(omicsData$f_data[,order_cname]) != length(unique(omicsData$f_data[,order_cname]))){
     stop ("Input parameter order_cname cannot contain duplicate values for the overall run order")
+  }
+  
+  # group_cname - type of each sample
+  if (class(group_cname) != "character") {
+    stop("Input parameter group_cname must be of class 'character'.")
+  }
+  
+  if (length(group_cname) > 2) {
+    stop("Input parameter group_cname must be of length 1 or 2 (e.g. vector containing a one or two elements")
+  }
+  
+  if (!any(names(omicsData$f_data) == group_cname)) {
+    stop("Input parameter group_cname must be a column found in f_data of omicsData.")
   }
   
   # check that value in keep_qc is logical
@@ -309,18 +324,19 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,ntree = 500,keep_qc 
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
   
-  # # Add the group information to the group_DF attribute in the omicsData object.
-  # if(!is.null(attr(omicsData,"group_DF"))){
-  #   group_id_col = which.max(colSums(fdata == attr(omicsData,"group_DF")$Group))
-  #   group_name = names(fdata)[group_id_col]
-  #   batch_name = NULL
-  #   if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
-  #     batch_id_col = which((names(fdata) %in% names(attributes(attr(omicsData,"group_DF"))$batch_id)) & (names(fdata) != fdata_cname))
-  #     batch_name = names(fdata)[batch_id_col]
-  #   }
-  #   pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_name,batch_id = batch_name)
-  # }
-  attr(pmartObj,"group_DF") = attr(omicsData,"group_DF")
+  # check group designation
+  # since we are removing samples if keep_qc != TRUE
+  if(!is.null(attributes(attr(pmartObj,"group_DF"))$batch_id)){
+    batch_id_col = which(colnames(attributes(attr(pmartObj,"group_DF"))$batch_id) != fdata_cname)
+    batch_id_name = colnames(attributes(attr(pmartObj,"group_DF"))$batch_id)[batch_id_col]
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname,
+                                          batch_id = batch_id_name)
+  } else {
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname)
+  }
+  if(keep_qc == TRUE){
+    attr(pmartObj,"group_DF") = attr(omicsData,"group_DF")
+  }
 
   # Update the data_info attribute.
   attributes(pmartObj)$data_info$batch_info <- list(

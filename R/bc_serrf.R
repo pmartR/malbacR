@@ -25,13 +25,13 @@
 #'                                apply_norm = TRUE,backtransform = TRUE)
 #' impObj <- imputation(omicsData = pmart_amide)
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-#' amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC")
+#' amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC",group_cname = "group")
 #' 
 #' @author Damon Leach
 #' 
 #' @export
 #' 
-bc_serrf <- function(omicsData, sampletype_cname, test_val){
+bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   # run through checks ---------------------------------------------------------
   
   # check that omicsData is of appropriate class #
@@ -71,6 +71,19 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   }
   if (!test_val %in% omicsData$f_data[,sampletype_cname]){
     stop("Input parameter test_val must be a value in sampletype_cname column in omicsData$f_data")
+  }
+  
+  # group_cname - type of each sample
+  if (class(group_cname) != "character") {
+    stop("Input parameter group_cname must be of class 'character'.")
+  }
+  
+  if (length(group_cname) > 2) {
+    stop("Input parameter group_cname must be of length 1 or 2 (e.g. vector containing a one or two elements")
+  }
+  
+  if (!any(names(omicsData$f_data) == group_cname)) {
+    stop("Input parameter group_cname must be a column found in f_data of omicsData.")
   }
   
   # check that omicsData has batch id information
@@ -426,18 +439,16 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
   
-  # Add the group information to the group_DF attribute in the omicsData object.
-  # if(!is.null(attr(omicsData,"group_DF"))){
-  #   group_id_col = which.max(colSums(fdata == attr(omicsData,"group_DF")$Group))
-  #   group_name = names(fdata)[group_id_col]
-  #   batch_name = NULL
-  #   if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
-  #     batch_id_col = which((names(fdata) %in% names(attributes(attr(omicsData,"group_DF"))$batch_id)) & (names(fdata) != fdata_cname))
-  #     batch_name = names(fdata)[batch_id_col]
-  #   }
-  #   pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_name,batch_id = batch_name)
-  # }
-  attr(pmartObj,"group_DF") = attr(omicsData,"group_DF")
+  # check group designation
+  # since we are removing samples if keep_qc != TRUE
+  if(!is.null(attributes(attr(pmartObj,"group_DF"))$batch_id)){
+    batch_id_col = which(colnames(attributes(attr(pmartObj,"group_DF"))$batch_id) != fdata_cname)
+    batch_id_name = colnames(attributes(attr(pmartObj,"group_DF"))$batch_id)[batch_id_col]
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname,
+                                          batch_id = batch_id_name)
+  } else {
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname)
+  }
   
   # Update the data_info attribute.
   attributes(pmartObj)$data_info$batch_info <- list(

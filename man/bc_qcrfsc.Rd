@@ -9,6 +9,7 @@ bc_qcrfsc(
   qc_cname,
   qc_val,
   order_cname,
+  group_cname,
   ntree = 500,
   keep_qc = FALSE
 )
@@ -27,6 +28,9 @@ indicates a QC sample}
 
 \item{order_cname}{character string giving name of column in omicsData$f_data
 that contains the run order}
+
+\item{group_cname}{character string giving the name of column in omicsData$f_data
+that contains the variable indicating the biological groups of interest}
 
 \item{ntree}{number of trees to grow in random forest model (default is set to 500)}
 
@@ -56,7 +60,7 @@ impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 amide_imp_abund <- edata_transform(amide_imp,"abundance")
 amide_imp_abund <- group_designation(amide_imp_abund,main_effects = "group")
-amide_qcrfsc <- bc_qcrfsc(omicsData = amide_imp_abund,qc_cname = "group",qc_val = "QC",order_cname = "Injection_order",ntree = 500,keep_qc = FALSE)
+amide_qcrfsc <- bc_qcrfsc(omicsData = amide_imp_abund,qc_cname = "group",qc_val = "QC",order_cname = "Injection_order",group_cname = "group", ntree = 500,keep_qc = FALSE)
 
 }
 \author{

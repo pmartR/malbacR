@@ -8,6 +8,7 @@ bc_tiger(
   omicsData,
   sampletype_cname,
   test_val,
+  group_cname,
   position_cname = NULL,
   injection_cname = NULL
 )
