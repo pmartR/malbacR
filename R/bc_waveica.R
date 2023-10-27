@@ -216,7 +216,7 @@ bc_waveica <- function(omicsData,injection_cname, alpha = 0, cutoff = 0.1, K = 1
     data_scale = pmartR::get_data_scale(omicsData),
     data_types = pmartR::get_data_info(omicsData)$data_types,
     norm_info = pmartR::get_data_info(omicsData)$norm_info,
-    is_normalized = pmartR::get_data_info(omicsData)$norm_info$is_normalized,
+    is_normalized = TRUE,
     batch_info = pmartR::get_data_info(omicsData)$batch_info,
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )

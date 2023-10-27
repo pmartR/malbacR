@@ -38,20 +38,20 @@ bc_power <- function(omicsData) {
                 sep = ' '))
   }
   
+  edat <- omicsData$e_data
+  edat_cname = pmartR::get_edata_cname(omicsData)
   # we cannot have negative values
-  if(sum(omicsData$e_data < 0,na.rm=TRUE) > 0){
+  if(sum(edat[,-which(colnames(edat) == edat_cname)] < 0,na.rm=TRUE) > 0){
     stop("Power scaling cannot run with expression data that has negative values (likely
          due to normalization without a backtransform")
   }
 
   # important info for compiling pmart object later ----------------------------
   # find the individual data sets 
-  edat <- omicsData$e_data
   fdat <- omicsData$f_data
   emet <- omicsData$e_meta
   
   # get the variables we need to create pmart object
-  edat_cname = pmartR::get_edata_cname(omicsData)
   fdat_cname = pmartR::get_fdata_cname(omicsData)
   emet_cname = pmartR::get_emeta_cname(omicsData)
   
@@ -130,7 +130,7 @@ bc_power <- function(omicsData) {
     data_scale = pmartR::get_data_scale(omicsData),
     data_types = pmartR::get_data_info(omicsData)$data_types,
     norm_info = pmartR::get_data_info(omicsData)$norm_info,
-    is_normalized = pmartR::get_data_info(omicsData)$norm_info$is_normalized,
+    is_normalized = TRUE,
     batch_info = pmartR::get_data_info(omicsData)$batch_info,
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
