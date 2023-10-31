@@ -65,6 +65,6 @@ test_that('bc_pareto returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(mdata_scaled)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "range_scaling", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_range", params = list()))
 })
 

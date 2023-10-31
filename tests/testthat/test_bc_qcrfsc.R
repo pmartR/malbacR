@@ -223,7 +223,12 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   
   # batch info shold be updated
   expect_identical(attributes(udn_QC)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "qcrfsc", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_qcrfsc", params = list(qc_cname = "QC",
+                                                                            qc_val = "QC.NIST",
+                                                                            order_cname = "RunOrderOverall",
+                                                                            group_cname = "Age",
+                                                                            ntree = 500,
+                                                                            keep_qc = FALSE)))
   expect_identical(attr(mdata, 'meta_info')$meta_data,
                    attr(udn_QC, 'meta_info')$meta_data) 
   expect_identical(attr(mdata, 'meta_info')$num_emeta,
@@ -292,7 +297,12 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_equal(attr(udn_QC2,"data_info")$num_samps, nrow(udn_QC2$f_data))
   # batch info shold be updated
   expect_identical(attributes(udn_QC2)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "qcrfsc", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_qcrfsc", params = list(qc_cname = "QC",
+                                                                            qc_val = "QC.NIST",
+                                                                            order_cname = "RunOrderOverall",
+                                                                            group_cname = "Age",
+                                                                            ntree = 500,
+                                                                            keep_qc = FALSE)))
   expect_identical(attr(mdata, 'meta_info')$meta_data,
                    attr(udn_QC2, 'meta_info')$meta_data) 
   expect_identical(attr(mdata, 'meta_info')$num_emeta,

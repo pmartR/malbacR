@@ -135,5 +135,7 @@ test_that('bc_serrf returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(udn_serrf)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "serrf", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_serrf", params = list(sampletype_cname = "QC",
+                                                                           test_val = "QC.NIST",
+                                                                           group_cname = "Age")))
 })

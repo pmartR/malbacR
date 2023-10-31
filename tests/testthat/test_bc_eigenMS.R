@@ -89,6 +89,6 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(udn_scaled)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "eigenMS", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_eigenMS", params = list()))
 })
 

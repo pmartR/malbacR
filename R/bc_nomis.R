@@ -90,7 +90,7 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   }
   
   # we cannot have negative values
-  if(sum(omicsData$e_data < 0,na.rm=TRUE) > 0){
+  if(sum(omicsData$e_data[,-cnameCol] < 0,na.rm=TRUE) > 0){
     stop("NOMIS cannot run with expression data that has negative values (likely
          due to normalization without a backtransform")
   }
@@ -99,8 +99,8 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   
   # find the values needed for the normalize function
   # set up the object parameter (the e_data)
-  edat <- as.matrix(omicsData$e_data[,-1])
-  rownames(edat) <- omicsData$e_data[,1]
+  edat <- as.matrix(omicsData$e_data[,-cnameCol])
+  rownames(edat) <- omicsData$e_data[,cnameCol]
   rowNamEdat = rownames(edat)
 
   # set up the factors parameter which is model.matrix with batch information

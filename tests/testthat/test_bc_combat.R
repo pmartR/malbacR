@@ -98,7 +98,7 @@ test_that('bc_combat returns the correct data frame and attributes',{
                    attributes(pdata_bgnFilt)$data_info[1:8])
   # update batch info
   expect_identical(attributes(pdata_bc)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "combat", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_combat", params = list(use_groups = FALSE)))
   expect_identical(attr(pdata_bgnFilt, 'meta_info'),
                    attr(pdata_bc, 'meta_info'))
   expect_identical(attr(pdata_bgnFilt, 'filters'),
@@ -137,7 +137,7 @@ test_that('bc_combat returns the correct data frame and attributes',{
                    attributes(pdata_bgnFilt)$data_info[1:8])
   # update batch info
   expect_identical(attributes(pdata_gbc)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "combat", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_combat", params = list(use_groups = TRUE)))
   expect_identical(attr(pdata_bgnFilt, 'meta_info'),
                    attr(pdata_gbc, 'meta_info'))
   expect_identical(attr(pdata_bgnFilt, 'filters'),

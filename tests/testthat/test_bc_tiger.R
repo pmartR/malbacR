@@ -175,5 +175,9 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(udn_tiger)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "tiger", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_tiger", params = list(sampletype_cname = "QC",
+                                                                           test_val = "QC.NIST",
+                                                                           group_cname = "Age",
+                                                                           position_cname = NULL,
+                                                                           injection_cname = "RunOrderOverall")))
 })

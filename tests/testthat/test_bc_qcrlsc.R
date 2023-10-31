@@ -165,7 +165,14 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
   
   # batch info shold be updated
   expect_identical(attributes(udn_QC)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "qcrlsc_scaling", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_qcrlsc", params = list(block_cname = "BatchNum",
+                                                                                 qc_cname = "QC",
+                                                                                 qc_val = "QC.NIST",
+                                                                                 order_cname = "RunOrderOverall",
+                                                                                 missing_thresh = 0.5,
+                                                                                 rsd_thresh = 0.3,
+                                                                                 backtransform = FALSE,
+                                                                                 keep_qc = FALSE)))
   expect_identical(attr(mdata4, 'meta_info')$meta_data,
                    attr(udn_QC, 'meta_info')$meta_data) 
   expect_identical(attr(mdata4, 'meta_info')$num_emeta,
@@ -227,7 +234,14 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
   expect_equal(attr(udn_QC2,"data_info")$num_samps, nrow(udn_QC2$f_data))
   # batch info shold be updated
   expect_identical(attributes(udn_QC2)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "qcrlsc_scaling", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_qcrlsc", params = list(block_cname = "BatchNum",
+                                                                            qc_cname = "QC",
+                                                                            qc_val = "QC.NIST",
+                                                                            order_cname = "RunOrderOverall",
+                                                                            missing_thresh = 0.5,
+                                                                            rsd_thresh = 0.3,
+                                                                            backtransform = FALSE,
+                                                                            keep_qc = FALSE)))
   expect_identical(attr(mdata4, 'meta_info')$meta_data,
                    attr(udn_QC2, 'meta_info')$meta_data) 
   expect_identical(attr(mdata4, 'meta_info')$num_emeta,

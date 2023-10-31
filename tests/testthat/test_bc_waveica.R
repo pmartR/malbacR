@@ -118,5 +118,8 @@ test_that('bc_waveica returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(udn_wave)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "waveica", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_waveica", params = list(injection_cname = "RunOrderOverall",
+                                                                             alpha = 0,
+                                                                             cutoff = 0.1,
+                                                                             K = 10)))
 })

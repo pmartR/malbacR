@@ -89,5 +89,7 @@ test_that('bc_ruvRandom returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(udn_ruv)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "ruv_random", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_ruvRandom", params = list(nc_cname = "IS",
+                                                                               nc_val = "IS",
+                                                                               k = 3)))
 })
