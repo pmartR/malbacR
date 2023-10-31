@@ -195,11 +195,6 @@ bc_combat <- function(omicsData,use_groups = FALSE){
     bc_method = "bc_combat",
     params = list(use_groups = use_groups)
   )
-  # update normalization as well 
-  attributes(pmartObj)$data_info$norm_info <- list(
-    is_normalized = TRUE,
-    norm_type = "bc_combat"
-  )
   
   # Update the meta_info attribute (this should be the same from before combat)
   attr(pmartObj, 'meta_info') <- pmartR:::set_meta_info(
