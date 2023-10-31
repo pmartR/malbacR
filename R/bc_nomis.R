@@ -102,6 +102,8 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   edat <- as.matrix(omicsData$e_data[,-cnameCol])
   rownames(edat) <- omicsData$e_data[,cnameCol]
   rowNamEdat = rownames(edat)
+  # if a value = 1, add a small amount to not break function
+  edat[edat == 0] = 0.00000000001
 
   # set up the factors parameter which is model.matrix with batch information
   # obain batch information
