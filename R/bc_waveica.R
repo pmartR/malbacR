@@ -24,8 +24,6 @@
 #' data("pmart_amide")
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-#' pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-#'                                apply_norm = TRUE,backtransform = TRUE)
 #' impObj <- imputation(omicsData = pmart_amide)
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 #' amide_wave <- bc_waveica(omicsData = amide_imp, injection_cname = "Injection_order",
@@ -216,7 +214,7 @@ bc_waveica <- function(omicsData,injection_cname, alpha = 0, cutoff = 0.1, K = 1
     data_scale = pmartR::get_data_scale(omicsData),
     data_types = pmartR::get_data_info(omicsData)$data_types,
     norm_info = pmartR::get_data_info(omicsData)$norm_info,
-    is_normalized = TRUE,
+    is_normalized = pmartR::get_data_info(omicsData)$norm_info$is_normalized,
     batch_info = pmartR::get_data_info(omicsData)$batch_info,
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
@@ -224,11 +222,20 @@ bc_waveica <- function(omicsData,injection_cname, alpha = 0, cutoff = 0.1, K = 1
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
   
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "waveica",
-    params = list()
+    bc_method = "bc_waveica",
+    params = list(injection_cname = injection_cname,
+                  alpha = alpha,
+                  cutoff = cutoff,
+                  K = K)
+  )
+
+    # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_waveica"
   )
   
   # Update the meta_info attribute.

@@ -310,7 +310,6 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,group_cname,ntree = 
                                   e_meta = emet,
                                   emeta_cname = emeta_cname)
   }
-  
   # Update the data_info attribute.
   attr(pmartObj, 'data_info') <- pmartR:::set_data_info(
     e_data = pmartObj$e_data,
@@ -319,11 +318,11 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,group_cname,ntree = 
     data_scale = pmartR::get_data_scale(omicsData),
     data_types = pmartR::get_data_info(omicsData)$data_types,
     norm_info = pmartR::get_data_info(omicsData)$norm_info,
-    is_normalized = TRUE,
+    is_normalized = pmartR::get_data_info(omicsData)$norm_info$is_normalized,
     batch_info = pmartR::get_data_info(omicsData)$batch_info,
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
-  
+
   # check group designation
   # since we are removing samples if keep_qc != TRUE
   if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
@@ -338,11 +337,22 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,group_cname,ntree = 
     attr(pmartObj,"group_DF") = attr(omicsData,"group_DF")
   }
 
-  # Update the data_info attribute.
+  
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "qcrfsc",
-    params = list()
+    bc_method = "bc_qcrfsc",
+    params = list(qc_cname = qc_cname,
+                  qc_val = qc_val,
+                  order_cname = order_cname,
+                  group_cname = group_cname,
+                  ntree = ntree,
+                  keep_qc = keep_qc)
+  )
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_qcrfsc"
   )
   
   # Update the meta_info attribute.

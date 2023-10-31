@@ -46,8 +46,9 @@ test_that('bc_pareto returns the correct data frame and attributes',{
   expect_equal(attr(mdata_complete,"cnames"),attr(mdata_scaled,"cnames"))
   # check data info
   # check data info
-  expect_equal(attributes(mdata_complete)$data_info[1:3],
-               attributes(mdata_scaled)$data_info[1:3])
+  expect_equal(attributes(mdata_complete)$data_info[1:2],
+               attributes(mdata_scaled)$data_info[1:2])
+  expect_equal(attributes(mdata_scaled)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(mdata_scaled,"data_info")$num_edata, nrow(mdata_scaled$e_data))
   expect_equal(attr(mdata_scaled,"data_info")$num_miss_obs, sum(is.na(mdata_scaled$e_data)))
   expect_equal(attr(mdata_scaled,"data_info")$prop_missing, sum(is.na(mdata_scaled$e_data))/(nrow(mdata_scaled$e_data)*(ncol(mdata_scaled$e_data)-1)))

@@ -25,6 +25,7 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "For QCRFSC, omicsData must be ran with the scale 'abundance'")
   # so we fix this for future process
@@ -34,6 +35,7 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "omicsData must have undergone group designation")
   # so add in group designation
@@ -44,18 +46,21 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = mdata$e_data,
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "Input parameter qc_cname must be of class 'character'.")
   # must be of length 1
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = c("QC_data","QC"),
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "Input parameter qc_cname must be of length 1")
   # qc_cname needs to be a column in the fdata
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC_data",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "Input parameter qc_cname must be a column found in f_data of omicsData.")
   # QCVAL
@@ -63,27 +68,29 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = mdata$e_data,
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "Input parameter qc_val must be of class 'character'")
   # must be a value in qc_cname
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "Input parameter qc_val must be a value in qc_cname column")
   # keep_qc must be of length 1
-  expect_error(bc_qcrlsc(omicsData = mdata,
-                         block_cname = "BatchNum",
+  expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall",
                          keep_qc = c(TRUE,FALSE)),
                "Input parameter qc_val must be of length 1")
   # keep_qc must be logical
-  expect_error(bc_qcrlsc(omicsData = mdata,
-                         block_cname = "BatchNum",
+  expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall",
                          keep_qc = "True"),
                "Input parameter keep_qc must be logical")
@@ -92,18 +99,21 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = mdata$e_data),
                "Input parameter order_cname must be of class 'character'")
   # must be length 1
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = c("RunOrder","RunTime")),
                "Input parameter order_cname must be of length 1")
   # order_cname must be a column in the fdata
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrder"),
                "Input parameter order_cname must be a column found in f_data of omicsData.")
   # order_cname must be numeric
@@ -112,18 +122,43 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
                          qc_val = "QC.NIST",
                          order_cname = "BatchName"),
                "Input parameter order_cname must contain integer values for run order")
+  
+  # GROUP_CNAME
+  # must be a character
+  expect_error(bc_qcrfsc(omicsData = mdata,
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         group_cname = mdata$f_data,
+                         order_cname = "RunOrderOverall"),
+               "Input parameter group_cname must be of class 'character'")
+  # must be length 1
+  expect_error(bc_qcrfsc(omicsData = mdata,
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         group_cname = c("Age","Sex","Health"),
+                         order_cname = "RunOrderOverall"),
+               "Input parameter group_cname must be of length 1 or 2")
+  # order_cname must be a column in the fdata
+  expect_error(bc_qcrfsc(omicsData = mdata,
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         group_cname = "Health",
+                         order_cname = "RunOrderOverall"),
+               "Input parameter group_cname must be a column found in f_data of omicsData.")
   # we cannot have duplicate run orders
   mdata2 <- mdata
   mdata2$f_data$RunOrderOverall[3] <- as.integer(6)
   expect_error(bc_qcrfsc(omicsData = mdata2,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "Input parameter order_cname cannot contain duplicate values for the overall run order")
   # error out if we have missing values
   expect_error(bc_qcrfsc(omicsData = mdata,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "QCRFSC requires no missing observations. Remove molecules with missing samples.")
   
@@ -141,6 +176,7 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_error(bc_qcrfsc(omicsData = mdata_imp,
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
+                         group_cname = "Age",
                          order_cname = "RunOrderOverall"),
                "QCRFSC requires that the first and last sample ran are QC samples")
   # put the QC value back to normal
@@ -151,6 +187,7 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   udn_QC <- bc_qcrfsc(omicsData = mdata_imp,
                       qc_cname = "QC",
                       qc_val = "QC.NIST",
+                      group_cname = "Age",
                       order_cname = "RunOrderOverall")
   
   # Dimension check time -------------------------------------------------------
@@ -176,8 +213,9 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_identical(attr(mdata, 'cnames'),
                    attr(udn_QC, 'cnames'))
   # all information other than batch info should stay the same
-  expect_identical(attributes(mdata)$data_info[1:3],
-                   attributes(udn_QC)$data_info[1:3])
+  expect_identical(attributes(mdata)$data_info[1:2],
+                   attributes(udn_QC)$data_info[1:2])
+  expect_equal(attributes(udn_QC)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_QC,"data_info")$num_edata, nrow(udn_QC$e_data))
   expect_equal(attr(udn_QC,"data_info")$num_miss_obs, sum(is.na(udn_QC$e_data)))
   expect_equal(attr(udn_QC,"data_info")$prop_missing, sum(is.na(udn_QC$e_data))/(nrow(udn_QC$e_data)*(ncol(udn_QC$e_data)-1)))
@@ -219,6 +257,7 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   udn_QC2 <- bc_qcrfsc(omicsData = udn_with_emet,
                       qc_cname = "QC",
                       qc_val = "QC.NIST",
+                      group_cname = "Age",
                       order_cname = "RunOrderOverall")
   
   # Dimension check time (with emeta) ------------------------------------------
@@ -244,8 +283,9 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   expect_identical(attr(udn_with_emet, 'cnames'),
                    attr(udn_QC2, 'cnames'))
   # look at data_info
-  expect_identical(attributes(mdata)$data_info[1:3],
-                   attributes(udn_QC2)$data_info[1:3])
+  expect_identical(attributes(mdata)$data_info[1:2],
+                   attributes(udn_QC2)$data_info[1:2])
+  expect_equal(attributes(udn_QC2)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_QC2,"data_info")$num_edata, nrow(udn_QC2$e_data))
   expect_equal(attr(udn_QC2,"data_info")$num_miss_obs, sum(is.na(udn_QC2$e_data)))
   expect_equal(attr(udn_QC2,"data_info")$prop_missing, sum(is.na(udn_QC2$e_data))/(nrow(udn_QC2$e_data)*(ncol(udn_QC2$e_data)-1)))

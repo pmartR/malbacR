@@ -37,8 +37,6 @@
 #' data("pmart_amide")
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-#' pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-#'                                apply_norm = TRUE,backtransform = TRUE)
 #' amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
 #'                           qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
 #'                           missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
@@ -280,19 +278,29 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
     data_scale = pmartR::get_data_scale(omicsData),
     data_types = pmartR::get_data_info(omicsData)$data_types,
     norm_info = pmartR::get_data_info(omicsData)$norm_info,
-    is_normalized = TRUE,
+    is_normalized = pmartR::get_data_info(omicsData)$norm_info$is_normalized,
     batch_info = pmartR::get_data_info(omicsData)$batch_info,
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
   
-  # Add the group information to the group_DF attribute in the omicsData object.
-  #attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
-  
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "qcrlsc_scaling",
-    params = list()
+    bc_method = "bc_qcrlsc",
+    params = list(block_cname = block_cname,
+                  qc_cname = qc_cname,
+                  qc_val = qc_val,
+                  order_cname = order_cname,
+                  missing_thresh = missing_thresh,
+                  rsd_thresh = rsd_thresh,
+                  backtransform = backtransform,
+                  keep_qc = keep_qc)
+  )
+  
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_qcrlsc"
   )
   
   # return pmart object

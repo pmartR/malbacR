@@ -70,8 +70,9 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
   # check cnames
   expect_equal(attr(mdata,"cnames"),attr(udn_scaled,"cnames"))
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:3],
-               attributes(udn_scaled)$data_info[1:3])
+  expect_equal(attributes(mdata)$data_info[1:2],
+               attributes(udn_scaled)$data_info[1:2])
+  expect_equal(attributes(udn_scaled)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_scaled,"data_info")$num_edata, nrow(udn_scaled$e_data))
   expect_equal(attr(udn_scaled,"data_info")$num_miss_obs, sum(is.na(udn_scaled$e_data)))
   expect_equal(attr(udn_scaled,"data_info")$prop_missing, sum(is.na(udn_scaled$e_data))/(nrow(udn_scaled$e_data)*(ncol(udn_scaled$e_data)-1)))

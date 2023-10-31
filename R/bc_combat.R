@@ -189,11 +189,16 @@ bc_combat <- function(omicsData,use_groups = FALSE){
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
 
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "combat",
-    params = list()
+    bc_method = "bc_combat",
+    params = list(use_groups = use_groups)
+  )
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_combat"
   )
   
   # Update the meta_info attribute (this should be the same from before combat)

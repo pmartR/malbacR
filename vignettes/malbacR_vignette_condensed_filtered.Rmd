@@ -66,6 +66,8 @@ The "Amide" data set contains information regarding quality control samples. The
 - WaveICA2.0
 - SERRF
 - ComBat
+- QCRLSC
+- QCRFSC
 
 It is important to note that the data `pmart_amideFilt` has been filtered, transformed, and imputed such that the data runs with all possible methods, but it may be conservative for a given method. For example, some methods do not require imputation to run, but because some methods require imputation (like SERRF and WaveICA2.0) [@serrf_paper;@waveica_paper], the data has been imputed.
 
@@ -83,15 +85,15 @@ amide_pareto <- bc_pareto(omicsData = pmart_amideFilt)
 # QUALITY CONTROL METHODS
 # TIGER
 amide_tiger <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
-                        test_val = "QC",injection_cname = "Injection_order")
+                        test_val = "QC",injection_cname = "Injection_order",group_cname = "group")
 
 # QC-RLSC
 amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amideFilt,block_cname = "batch",
                           qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
-                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
+                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE,keep_qc = FALSE)
 
 # SERRF
-amide_serrf <- bc_serrf(omicsData = pmart_amideFilt,sampletype_cname = "group",test_val = "QC")
+amide_serrf <- bc_serrf(omicsData = pmart_amideFilt,sampletype_cname = "group",test_val = "QC",group_cname = "group")
 
 # OTHER METHODS
 # ComBat
@@ -103,6 +105,12 @@ amide_eigen <- bc_eigenMS(omicsData = pmart_amideFilt)
 # WaveICA2.0
 amide_wave <- bc_waveica(omicsData = pmart_amideFilt, injection_cname = "Injection_order",
                          alpha = 0, cutoff = 0.1, K = 10)
+
+# QC-RFSC
+pmart_amideFilt_abundance <- pmartR::edata_transform(pmart_amideFilt,"abundance")
+amide_qcrfsc <- bc_qcrfsc(omicsData = pmart_amideFilt_abundance,qc_cname = "group",qc_val = "QC",
+                          order_cname = "Injection_order",ntree = 500, keep_qc = FALSE,group_cname = "group")
+amide_qcrfsc <- pmartR::edata_transform(amide_qcrfsc,"log2")
 ```
 
 ### Data Visualization
@@ -110,27 +118,19 @@ amide_wave <- bc_waveica(omicsData = pmart_amideFilt, injection_cname = "Injecti
 After obtaining all the different batch corrected data sets, we can plot the PPCA to see if they are successfully returning batch corrected data. We set the `group_designation` to use our batch information as the `main_effects` so as to color the data by batch. All of this code is run using functions from `pmartR` demonstrating the utility between the two packages.
 
 ```{r, out.width = "33%"}
-pmart_amide <- group_designation(pmart_amideFilt,main_effects = "batch")
-amide_range <- group_designation(amide_range,main_effects = "batch")
-amide_power <- group_designation(amide_power,main_effects = "batch")
-amide_pareto <- group_designation(amide_pareto,main_effects = "batch")
-amide_tiger <- group_designation(amide_tiger,main_effects = "batch")
-amide_qcrlsc <- group_designation(amide_qcrlsc,main_effects = "batch")
-amide_combat <- group_designation(amide_combat,main_effects = "batch")
-amide_wave <- group_designation(amide_wave,main_effects = "batch")
-amide_serrf <- group_designation(amide_serrf,main_effects = "batch")
 
-p1 <- plot(dim_reduction(omicsData = pmart_amide))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Unadjusted")
-p2 <- plot(dim_reduction(omicsData = amide_range))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Range")
-p3 <- plot(dim_reduction(omicsData = amide_power))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Power")
-p4 <- plot(dim_reduction(omicsData = amide_pareto))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Pareto")
-p5 <- plot(dim_reduction(omicsData = amide_tiger))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: TIGER")
-p6 <- plot(dim_reduction(omicsData = amide_qcrlsc))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: QC-RLSC")
-p7 <- plot(dim_reduction(omicsData = amide_combat))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: ComBat")
-p8 <- plot(dim_reduction(omicsData = amide_wave))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: WaveICA2.0")
-p9 <- plot(dim_reduction(omicsData = amide_serrf))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: SERRF")
+p1 <- plot(dim_reduction(omicsData = pmart_amideFilt),omicsData = pmart_amide,color_by = "batch") + labs(title = "Amide: Unadjusted")
+p2 <- plot(dim_reduction(omicsData = amide_range),omicsData = amide_range,color_by = "batch") + labs(title = "Amide: Range")
+p3 <- plot(dim_reduction(omicsData = amide_power),omicsData = amide_power,color_by = "batch") + labs(title = "Amide: Power")
+p4 <- plot(dim_reduction(omicsData = amide_pareto),omicsData = amide_pareto,color_by = "batch") + labs(title = "Amide: Pareto")
+p5 <- plot(dim_reduction(omicsData = amide_tiger),omicsData = amide_tiger,color_by = "batch") + labs(title = "Amide: TIGER")
+p6 <- plot(dim_reduction(omicsData = amide_qcrlsc),omicsData = amide_qcrlsc,color_by = "batch") + labs(title = "Amide: QC-RLSC")
+p7 <- plot(dim_reduction(omicsData = amide_combat),omicsData = amide_combat,color_by = "batch") + labs(title = "Amide: ComBat")
+p8 <- plot(dim_reduction(omicsData = amide_wave),omicsData = amide_wave,color_by = "batch") + labs(title = "Amide: WaveICA2.0")
+p9 <- plot(dim_reduction(omicsData = amide_serrf),omicsData = amide_serrf,color_by = "batch") + labs(title = "Amide: SERRF")
+p10 <- plot(dim_reduction(omicsData = amide_qcrfsc),omicsData = amide_qcrfsc,color_by = "batch") + labs(title = "Amide: QC-RFSC")
 
-p1;p2;p3;p4;p5;p6;p7;p8;p9
+p1;p2;p3;p4;p5;p6;p7;p8;p9;p10
 ```
 
 ## Data Set 2: Mix Data
@@ -185,21 +185,13 @@ mix_combat <- bc_combat(omicsData = pmart_mixFilt)
 Similar to the previous data set, we can compare the PCA plots between the unadjusted and adjusted data sets.
 
 ```{r,out.width = "33%"}
-pmart_mix <- group_designation(pmart_mixFilt,main_effects = "BatchNum")
-mix_range <- group_designation(mix_range,main_effects = "BatchNum")
-mix_power <- group_designation(mix_power,main_effects = "BatchNum")
-mix_pareto <- group_designation(mix_pareto,main_effects = "BatchNum")
-mix_combat <- group_designation(mix_combat,main_effects = "BatchNum")
-mix_ruv <- group_designation(mix_ruv,main_effects = "BatchNum")
-mix_nomis <- group_designation(mix_nomis,main_effects = "BatchNum")
-
-p1 <- plot(dim_reduction(omicsData = pmart_mix)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Unadjusted")
-p2 <- plot(dim_reduction(omicsData = mix_ruv)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: RUV-random")
-p3 <- plot(dim_reduction(omicsData = mix_nomis)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: NOMIS")
-p4 <- plot(dim_reduction(omicsData = mix_combat)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: ComBat")
-p5 <- plot(dim_reduction(omicsData = mix_range)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Range")
-p6 <- plot(dim_reduction(omicsData = mix_power)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Power")
-p7 <- plot(dim_reduction(omicsData = mix_pareto)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Pareto")
+p1 <- plot(dim_reduction(omicsData = pmart_mixFilt),omicsData = pmart_mixFilt,color_by = "BatchNum") + labs(title = "Mix: Unadjusted")
+p2 <- plot(dim_reduction(omicsData = mix_ruv),omicsData = mix_ruv,color_by = "BatchNum") + labs(title = "Mix: ruv-Random")
+p3 <- plot(dim_reduction(omicsData = mix_nomis),omicsData = mix_nomis,color_by = "BatchNum") + labs(title = "Mix: NOMIS")
+p4 <- plot(dim_reduction(omicsData = mix_combat),omicsData = mix_combat,color_by = "BatchNum") + labs(title = "Mix: ComBat")
+p5 <- plot(dim_reduction(omicsData = mix_range),omicsData = mix_range,color_by = "BatchNum") + labs(title = "Mix: Range")
+p6 <- plot(dim_reduction(omicsData = mix_power),omicsData = mix_power,color_by = "BatchNum") + labs(title = "Mix: Power")
+p7 <- plot(dim_reduction(omicsData = mix_pareto),omicsData = mix_pareto,color_by = "BatchNum") + labs(title = "Mix: Pareto")
 
 p1;p2;p3;p4;p5;p6;p7
 ```

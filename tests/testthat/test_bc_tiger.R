@@ -22,7 +22,8 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   # Run through the potential error messages -----------------------------------
   
   # omicsData needs to have undergone batch id group designation
-  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = "Sex",test_val = "QC.NIST"),
+  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = "Sex",test_val = "QC.NIST",
+                        group_cname = "Age"),
                "omicsData must have batch_id attribute for batch correction")
   # update the batch correction
   mdata <- pmartR::group_designation(mdata,main_effects = "Age",batch_id = "BatchName")
@@ -30,57 +31,87 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   # what if we enter parameters wrong
   # sampletype_cname
   # cannot have more than 1 element in string
-  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = c("Sex","Age"),test_val = "QC.NIST"),
+  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = c("Sex","Age"),test_val = "QC.NIST",
+                        group_cname = "Age"),
                "Input parameter sampletype_cname must be of length 1")
   # must be numeric
-  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = 10,test_val = "QC.NIST"),
+  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = 10,test_val = "QC.NIST",
+                        group_cname = "Age"),
                "Input parameter sampletype_cname must be of class 'character'")
   # must be a column in fdata
-  expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Cat",test_val = "QC.NIST"),
+  expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Cat",test_val = "QC.NIST",
+                        group_cname = "Age"),
                "Input parameter sampletype_cname must be a column found in f_data of omicsData")
   
   # test_val
   # must have one element
-  expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex", test_val = c("QC.NIST","QC.Pool")),
+  expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex", test_val = c("QC.NIST","QC.Pool"),
+                        group_cname = "Age"),
                "Input parameter test_val must be of length 1")
   # must be numeric
-  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = "Sex",test_val = 10),
+  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = "Sex",test_val = 10,
+                        group_cname = "Age"),
                "Input parameter test_val must be of class 'character'")
   # must be a column in fdata
-  expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex",test_val = "Dog"),
+  expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex",test_val = "Dog",
+                        group_cname = "Age"),
                "Input parameter test_val must be a value in sampletype_cname")
   
   # position_cname
   # must have one element
   expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex", test_val = "QC.NIST",
-                        position_cname = c("Sex","Age")),
+                        position_cname = c("Sex","Age"),
+                        group_cname = "Age"),
                "Input parameter position_cname must be of length 1")
   # must be numeric
   expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex", test_val = "QC.NIST",
-                        position_cname = 10),
+                        position_cname = 10,
+                        group_cname = "Age"),
                "Input parameter position_cname must be of class 'character'")
   # must be a column in sampletype_cname column
   expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex",test_val = "QC.NIST",
-                        position_cname = "Well_Pos"),
+                        position_cname = "Well_Pos",
+                        group_cname = "Age"),
                "Input parameter position_cname must be a column found in f_data of omicsData")
   
   # injection_cname
   # must have one element
   expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex", test_val = "QC.NIST",
-                        injection_cname = c("RunOrderOverall","RunOrderBatch")),
+                        injection_cname = c("RunOrderOverall","RunOrderBatch"),
+                        group_cname = "Age"),
                "Input parameter injection_cname must be of length 1")
   # must be numeric
   expect_error(bc_tiger(omicsData = mdata,sampletype_cname = "Sex",test_val = "QC.NIST",
-                        injection_cname = 10),
+                        injection_cname = 10,
+                        group_cname = "Age"),
                "Input parameter injection_cname must be of class 'character'")
   # must be a column in fdata
   expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex",test_val = "QC.NIST",
-                        injection_cname = "RunningOrder"),
+                        injection_cname = "RunningOrder",
+                        group_cname = "Age"),
                "Input parameter injection_cname must be a column found in f_data of omicsData")
+  
+  # group cname must be 1 or 2 length
+  # must have one element
+  expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex", test_val = "QC.NIST",
+                        injection_cname = "RunOrderOverall",
+                        group_cname = c("Age","Sex","Health")),
+               "Input parameter group_cname must be of length 1 or 2")
+  # must be numeric
+  expect_error(bc_tiger(omicsData = mdata,sampletype_cname = "Sex",test_val = "QC.NIST",
+                        injection_cname = "RunOrderOverall",
+                        group_cname = 10),
+               "Input parameter group_cname must be of class 'character'")
+  # must be a column in fdata
+  expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex",test_val = "QC.NIST",
+                        injection_cname = "RunningOrder",
+                        group_cname = "Health"),
+               "Input parameter group_cname must be a column found in f_data of omicsData")
   
   # cannot have missing values in at least one sample of train and testing
   expect_error(bc_tiger(omicsData = mdata, sampletype_cname = "Sex",test_val = "QC.NIST",
-                        injection_cname = "RunOrderOverall"),
+                        injection_cname = "RunOrderOverall",
+                        group_cname = "Age"),
                "At least one sample associated with the test_val and at least one sample not associated")
   
   # Check the dimensions of results --------------------------------------------
@@ -93,7 +124,7 @@ test_that('bc_tiger returns the correct data frame and attributes',{
 
   # run tiger
   udn_tiger <- bc_tiger(omicsData = mdataImp, sampletype_cname = "QC", test_val = "QC.NIST",
-                        injection_cname = "RunOrderOverall")
+                        injection_cname = "RunOrderOverall",group_cname = "Age")
   
   # how many QC samples are there
   numQC = sum(mdataImp$f_data$QC == "QC.NIST")
@@ -121,8 +152,9 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   expect_equal(attr(mdataImp,"cnames"),attr(udn_tiger,"cnames"))
   # check data info except for batch info
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:3],
-               attributes(udn_tiger)$data_info[1:3])
+  expect_equal(attributes(mdata)$data_info[1:2],
+               attributes(udn_tiger)$data_info[1:2])
+  expect_equal(attributes(udn_tiger)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_tiger,"data_info")$num_edata, nrow(udn_tiger$e_data))
   expect_equal(attr(udn_tiger,"data_info")$num_miss_obs, sum(is.na(udn_tiger$e_data)))
   expect_equal(attr(udn_tiger,"data_info")$prop_missing, sum(is.na(udn_tiger$e_data))/(nrow(udn_tiger$e_data)*(ncol(udn_tiger$e_data)-1)))
@@ -135,7 +167,11 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   # check filters
   expect_equal(length(attr(mdataImp,"filters")),length(attr(udn_tiger,"filters")))
   # check group_DF
-  expect_equal(attr(mdataImp,"group_DF"),attr(udn_tiger,"group_DF"))
+  mdataImp_groupDF_filt = attr(mdataImp,"group_DF") %>% dplyr::filter(!stringr::str_detect(SampleID,"QC.NIST"))
+  expect_equal(attributes(mdataImp_groupDF_filt)[1:4],attributes(attr(udn_tiger,"group_DF"))[1:4])
+  expect_equal(attributes(mdataImp_groupDF_filt)$nonsingleton_groups[1:5],attributes(attr(udn_tiger,"group_DF"))$nonsingleton_groups)
+  batchImp_df <- attributes(attr(mdataImp,"group_DF"))$batch_id %>% dplyr::filter(!stringr::str_detect(SampleID,"QC.NIST"))
+  expect_equal(batchImp_df,attributes(attr(udn_tiger,"group_DF"))$batch_id)
   
   # batch info should be updated
   expect_identical(attributes(udn_tiger)$data_info$batch_info,

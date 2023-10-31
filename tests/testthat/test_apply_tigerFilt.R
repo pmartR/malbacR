@@ -62,5 +62,5 @@ test_that('tiger_filter returns the correct custom filter and attributes',{
   
   # all things considered - this function should run smoothly then
   mdataFilt <- pmartR::group_designation(omicsData = mdataFilt, main_effects = "Sex", batch_id = "BatchNum")
-  mdata_tiger <- bc_tiger(omicsData = mdataFilt,sampletype_cname = "QC", test_val = "QC.NIST")
+  mdata_tiger <- bc_tiger(omicsData = mdataFilt,sampletype_cname = "QC", test_val = "QC.NIST",group_cname = "Age")
 })

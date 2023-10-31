@@ -1,6 +1,6 @@
 context('Run ruvrand to run ruv random on edata')
 
-test_that('opt function in RUVrand returns list of',{
+test_that('opt function in RUVrand returns list',{
   
   # Load the reduced peptide data frames ---------------------------------------
   load(system.file('testdata',

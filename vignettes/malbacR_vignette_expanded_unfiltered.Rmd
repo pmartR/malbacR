@@ -86,7 +86,7 @@ amide_pareto <- bc_pareto(omicsData = pmart_amide)
 
 ##### QC-Based Methods
 
-Some batch correction methods rely on Quality Control (QC) samples including TIGER, QC-RLSC, and SERRF. To run TIGER (Technical variation elImination with ensemble learninG architEctuRe) [@tiger_paper], we run the function `bc_tiger` and use the following parameters: `omicsData`, `sampletype_cname` (a column in `f_data` that specifies which sample is QC sample or not), `test_val` (the value in `sampletype_cname` that specifies a QC sample), and `injection_cname` (the column in `f_data` that specifies the injection order).
+Some batch correction methods rely on Quality Control (QC) samples including TIGER, QC-RLSC, QC-RFSC and SERRF. To run TIGER (Technical variation elImination with ensemble learninG architEctuRe) [@tiger_paper], we run the function `bc_tiger` and use the following parameters: `omicsData`, `sampletype_cname` (a column in `f_data` that specifies which sample is QC sample or not), `test_val` (the value in `sampletype_cname` that specifies a QC sample), `injection_cname` (the column in `f_data` that specifies the injection order), and `group_cname` (the column in the `f_data` that specifies the groups that are used for statistical analyses).
 
 TIGER requires that there be at least one sample from the QC samples to have complete data for every molecule and at least one sample from the non-QC samples to have complete data from every molecule [@tiger_paper]. For this reason, we include a function, `tiger_filter`, that finds the combination of a QC sample and a non-QC sample that has the the fewest number of missing molecules to determine which molecules need to be removed. Using an additional function `apply_tigerFilt`, we apply that filter and obtain an S3 object that is capable of working within both `pmartR` and `malbacR`. Although this subset of data is already capable of undergoing TIGER batch correction as there is at least one QC sample and at least one non-QC sample with no missing values, we show how these functions would work in general.
 
@@ -94,18 +94,18 @@ TIGER requires that there be at least one sample from the QC samples to have com
 tigerFilt <- tiger_filter(pmart_amide,sampletype_cname = "group",test_val = "QC")
 pmart_amideFilt <- apply_tigerFilt(tigerFilt,pmart_amide)
 amide_tiger <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
-                        test_val = "QC",injection_cname = "Injection_order")
+                        test_val = "QC",injection_cname = "Injection_order",group_cname = "group")
 ```
 
-QC-RLSC (Quality Control - Robust Loess Signal Correction) [@qcrlsc_paper] can be ran using `bc_qcrlsc` which takes on the parameters `omicsData`, `block_cname` (a column in `f_data` that specifies which column contains batch information), `qc_cname` (a column in in `f_data` that specifies which sample is a QC sample or not), `qc_val` (the value in `qc_cname` that specifies a QC sample), and `order_cname` (a column in `f_data` that specifies the run order of the samples). Additionally, the user can specify the `missing_thresh` (the minimum proportion of observed biomolecules for each QC samples), the `rsd_thresh`, and whether the user wants to `backtransform` the data or not.
+QC-RLSC (Quality Control - Robust Loess Signal Correction) [@qcrlsc_paper] can be ran using `bc_qcrlsc` which takes on the parameters `omicsData`, `block_cname` (a column in `f_data` that specifies which column contains batch information), `qc_cname` (a column in in `f_data` that specifies which sample is a QC sample or not), `qc_val` (the value in `qc_cname` that specifies a QC sample), and `order_cname` (a column in `f_data` that specifies the run order of the samples). Additionally, the user can specify the `missing_thresh` (the minimum proportion of observed biomolecules for each QC samples), the `rsd_thresh`, and whether the user wants to `backtransform` the data or not. Further, users can specify whether they would like to retain the QC samples in their final output by specifying `keep_qc` to be TRUE or FALSE.
 
 ```{r}
 amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
                           qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
-                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
+                          missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE,keep_qc = FALSE)
 ```
 
-The final QC method in `malbacR` is SERRF (Systematic Error Removal using Random Forest) [@serrf_paper] which uses the function `bc_serrf`. This function utilizes the parameters `omicsData`, `sampletype_cname`, and `test_val` which have the same meanings as those within `bc_tiger`.
+The next QC method in `malbacR` is SERRF (Systematic Error Removal using Random Forest) [@serrf_paper] which uses the function `bc_serrf`. This function utilizes the parameters `omicsData`, `sampletype_cname`, `test_val`, and `group_cname` which have the same meanings as those within `bc_tiger`.
 
 One thing to note that SERRF is a method that requires complete observations [@serrf_paper]. This means we either have to remove molecules with missing values or impute them using an Expectation Maximization algorithm. Although there are reasons to avoid imputation particularly with proteomics data [@webbrobertson2011], we acknowledge that there are cases in which imputation is necessary. Therefore, we include an `imputation` function that returns the `e_data` that has undergone imputation. To then officially apply this to the `pmartR` S3 object, the user runs `apply_imputation`, similar to the procedure of `tiger_filter` and `apply_tigerFilt`.
 
@@ -115,7 +115,19 @@ amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 ```
 
 ```{r}
-amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC")
+amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC",group_cname = "group")
+```
+
+The final QC method in `malbacR` is QC-RFSC (Quality Control - Random Forest Signal Correction) [@qcrfsc_paper] can be ran using `bc_qcrfsc` which takes on the parameters. QC-RFSC has the following the arguments `omicsData`, `qc_cname`, `qc_val`, `keep_qc` and `Injection_order` which has the same meaning as the arguments from QC-RLSC. Additionally, QC-RFSC requires `group_cname` and `ntree` (the number of trees to be created when running random forest).
+
+Similar to SERRF, QC-RFSC requires complete observations, but unlike other methods, QC-RFSC must be ran on the abundance scale [@qcrfsc_paper]. As imputation is recommend on the log scale, the recommended procedure for QC-RLSC is to log transform the data, impute, transform back to raw abundance values and then run QC-RFSC. To compare results, it is suggested that users then convert data back to log2 scale after batch correction.
+
+```{r}
+amide_imp_abundance <- edata_transform(omicsData = amide_imp,data_scale = "abundance")
+amide_qcrfsc_abundance <- bc_qcrfsc(omicsData = amide_imp_abundance,qc_cname = "group",qc_val = "QC",
+                                    order_cname = "Injection_order",group_cname = "group",
+                                    ntree = 500, keep_qc = FALSE)
+amide_qcrfsc <- edata_transform(omicsData = amide_qcrfsc_abundance,data_scale = "log2")
 ```
 
 ##### Other Methods
@@ -145,29 +157,18 @@ amide_wave <- bc_waveica(omicsData = amide_imp, injection_cname = "Injection_ord
 After obtaining all the different batch corrected data sets, we can plot the PPCA [@sppca] to see if they are successfully returning batch corrected data. We set the `group_designation` to use our batch information as the `main_effects` so as to color the data by batch. All of this code is run using functions from `pmartR` demonstrating the utility between the two packages. A data set with batch effects will tend to produce a PPCA with distinct clusters for each batch. A good batch effect correction method will reduce those distinct clusters. Using that logic, ComBat, WaveICA2.0, and SERRF perform the best within this data set.
 
 ```{r, out.width = "33%"}
-pmart_amide <- group_designation(pmart_amide,main_effects = "batch")
-amide_range <- group_designation(amide_range,main_effects = "batch")
-amide_power <- group_designation(amide_power,main_effects = "batch")
-amide_pareto <- group_designation(amide_pareto,main_effects = "batch")
-amide_tiger <- group_designation(amide_tiger,main_effects = "batch")
-amide_qcrlsc <- group_designation(amide_qcrlsc,main_effects = "batch")
-amide_combat <- group_designation(amide_combat,main_effects = "batch")
-amide_wave <- group_designation(amide_wave,main_effects = "batch")
-amide_serrf <- group_designation(amide_serrf,main_effects = "batch")
+p1 <- plot(dim_reduction(omicsData = pmart_amide),omicsData = pmart_amide,color_by = "batch") + labs(title = "Amide: Unadjusted")
+p2 <- plot(dim_reduction(omicsData = amide_range),omicsData = amide_range,color_by = "batch") + labs(title = "Amide: Range")
+p3 <- plot(dim_reduction(omicsData = amide_power),omicsData = amide_power,color_by = "batch") + labs(title = "Amide: Power")
+p4 <- plot(dim_reduction(omicsData = amide_pareto),omicsData = amide_pareto,color_by = "batch") + labs(title = "Amide: Pareto")
+p5 <- plot(dim_reduction(omicsData = amide_tiger),omicsData = amide_tiger,color_by = "batch") + labs(title = "Amide: TIGER")
+p6 <- plot(dim_reduction(omicsData = amide_qcrlsc),omicsData = amide_qcrlsc,color_by = "batch") + labs(title = "Amide: QC-RLSC")
+p7 <- plot(dim_reduction(omicsData = amide_combat),omicsData = amide_combat,color_by = "batch") + labs(title = "Amide: ComBat")
+p8 <- plot(dim_reduction(omicsData = amide_wave),omicsData = amide_wave,color_by = "batch") + labs(title = "Amide: WaveICA2.0")
+p9 <- plot(dim_reduction(omicsData = amide_serrf),omicsData = amide_serrf,color_by = "batch") + labs(title = "Amide: SERRF")
+p10 <- plot(dim_reduction(omicsData = amide_qcrfsc),omicsData = amide_qcrfsc,color_by = "batch") + labs(title = "Amide: QC-RFSC")
 
-
-p1 <- plot(dim_reduction(omicsData = pmart_amide))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Unadjusted")
-p2 <- plot(dim_reduction(omicsData = amide_range))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Range")
-p3 <- plot(dim_reduction(omicsData = amide_power))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Power")
-p4 <- plot(dim_reduction(omicsData = amide_pareto))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: Pareto")
-p5 <- plot(dim_reduction(omicsData = amide_tiger))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: TIGER")
-p6 <- plot(dim_reduction(omicsData = amide_qcrlsc))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: QC-RLSC")
-p7 <- plot(dim_reduction(omicsData = amide_combat))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: ComBat")
-p8 <- plot(dim_reduction(omicsData = amide_wave))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: WaveICA2.0")
-p9 <- plot(dim_reduction(omicsData = amide_serrf))+ scale_colour_discrete(name="Batch") + labs(title = "Amide: SERRF")
-
-
-p1;p2;p3;p4;p5;p6;p7;p8;p9
+p1;p2;p3;p4;p5;p6;p7;p8;p9;p10
 ```
 
 ```{r,include = FALSE, eval = FALSE}
@@ -268,24 +269,17 @@ mix_power <- bc_power(omicsData = pmart_mix)
 Similar to the previous data set, we can compare the PPCA plots between the unadjusted and adjusted data sets. Using the same qualitative logic as with the "Amide" data set, it appears that NOMIS performs the best based on the PPCA clustering.
 
 ```{r,out.width = "33%"}
-pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum")
-mix_range <- group_designation(mix_range,main_effects = "BatchNum")
-mix_power <- group_designation(mix_power,main_effects = "BatchNum")
-mix_pareto <- group_designation(mix_pareto,main_effects = "BatchNum")
-mix_combat <- group_designation(mix_combat,main_effects = "BatchNum")
-mix_ruv <- group_designation(mix_ruv,main_effects = "BatchNum")
-mix_nomis <- group_designation(mix_nomis,main_effects = "BatchNum")
-
-p1 <- plot(dim_reduction(omicsData = pmart_mix)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Unadjusted")
-p2 <- plot(dim_reduction(omicsData = mix_ruv)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: RUV-random")
-p3 <- plot(dim_reduction(omicsData = mix_nomis)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: NOMIS")
-p4 <- plot(dim_reduction(omicsData = mix_combat)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: ComBat")
-p5 <- plot(dim_reduction(omicsData = mix_range)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Range")
-p6 <- plot(dim_reduction(omicsData = mix_power)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Power")
-p7 <- plot(dim_reduction(omicsData = mix_pareto)) + scale_colour_discrete(name="Batch") + labs(title = "Mix: Pareto")
+p1 <- plot(dim_reduction(omicsData = pmart_mixFilt),omicsData = pmart_mixFilt,color_by = "BatchNum") + labs(title = "Mix: Unadjusted")
+p2 <- plot(dim_reduction(omicsData = mix_ruv),omicsData = mix_ruv,color_by = "BatchNum") + labs(title = "Mix: ruv-Random")
+p3 <- plot(dim_reduction(omicsData = mix_nomis),omicsData = mix_nomis,color_by = "BatchNum") + labs(title = "Mix: NOMIS")
+p4 <- plot(dim_reduction(omicsData = mix_combat),omicsData = mix_combat,color_by = "BatchNum") + labs(title = "Mix: ComBat")
+p5 <- plot(dim_reduction(omicsData = mix_range),omicsData = mix_range,color_by = "BatchNum") + labs(title = "Mix: Range")
+p6 <- plot(dim_reduction(omicsData = mix_power),omicsData = mix_power,color_by = "BatchNum") + labs(title = "Mix: Power")
+p7 <- plot(dim_reduction(omicsData = mix_pareto),omicsData = mix_pareto,color_by = "BatchNum") + labs(title = "Mix: Pareto")
 
 p1;p2;p3;p4;p5;p6;p7
 ```
+
 ```{r,include = FALSE, eval = FALSE}
 # unadjusted
 pmart_mix_res <- dim_reduction(omicsData = pmart_mix)

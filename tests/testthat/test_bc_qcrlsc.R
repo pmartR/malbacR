@@ -155,8 +155,9 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
   expect_identical(attr(mdata4, 'cnames'),
                    attr(udn_QC, 'cnames'))
   # all information other than batch info should stay the same
-  expect_identical(attributes(mdata4)$data_info[1:3],
-                   attributes(udn_QC)$data_info[1:3])
+  expect_identical(attributes(mdata4)$data_info[1:2],
+                   attributes(udn_QC)$data_info[1:2])
+  expect_equal(attributes(udn_QC)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_QC,"data_info")$num_edata, nrow(udn_QC$e_data))
   expect_equal(attr(udn_QC,"data_info")$num_miss_obs, sum(is.na(udn_QC$e_data)))
   expect_equal(attr(udn_QC,"data_info")$prop_missing, sum(is.na(udn_QC$e_data))/(nrow(udn_QC$e_data)*(ncol(udn_QC$e_data)-1)))
@@ -217,8 +218,9 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
   expect_identical(attr(udn_with_emet, 'cnames'),
                    attr(udn_QC2, 'cnames'))
   # look at data_info
-  expect_identical(attributes(mdata4)$data_info[1:3],
-                   attributes(udn_QC2)$data_info[1:3])
+  expect_identical(attributes(mdata4)$data_info[1:2],
+                   attributes(udn_QC2)$data_info[1:2])
+  expect_equal(attributes(udn_QC2)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_QC2,"data_info")$num_edata, nrow(udn_QC2$e_data))
   expect_equal(attr(udn_QC2,"data_info")$num_miss_obs, sum(is.na(udn_QC2$e_data)))
   expect_equal(attr(udn_QC2,"data_info")$prop_missing, sum(is.na(udn_QC2$e_data))/(nrow(udn_QC2$e_data)*(ncol(udn_QC2$e_data)-1)))

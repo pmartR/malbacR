@@ -24,8 +24,6 @@
 #' data("pmart_mix")
 #' pmart_mix <- edata_transform(pmart_mix,"log2")
 #' pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum",batch_id = "BatchNum")
-#' pmart_mix <- normalize_global(pmart_mix,subset_fn = "all",norm_fn = "median",
-#'                               apply_norm = TRUE,backtransform = TRUE)
 #' mix_nomis <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", num_pc = 2)
 #' 
 #' @author Damon Leach
@@ -220,7 +218,7 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
     data_scale = pmartR::get_data_scale(omicsData),
     data_types = pmartR::get_data_info(omicsData)$data_types,
     norm_info = pmartR::get_data_info(omicsData)$norm_info,
-    is_normalized = TRUE,
+    is_normalized = pmartR::get_data_info(omicsData)$norm_info$is_normalized,
     batch_info = pmartR::get_data_info(omicsData)$batch_info,
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
@@ -228,11 +226,19 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
   
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "nomis",
-    params = list()
+    bc_method = "bc_nomis",
+    params = list(is_cname = is_cname,
+                  is_val = is_val,
+                  num_pc = num_pc)
+  )
+
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_nomis"
   )
   
   # Update the meta_info attribute.

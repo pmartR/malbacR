@@ -99,8 +99,9 @@ test_that('bc_waveica returns the correct data frame and attributes',{
   expect_equal(attr(udn_complete,"cnames"),attr(udn_wave,"cnames"))
   # check data info except for batch info
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:3],
-               attributes(udn_wave)$data_info[1:3])
+  expect_equal(attributes(mdata)$data_info[1:2],
+               attributes(udn_wave)$data_info[1:2])
+  expect_equal(attributes(udn_wave)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_wave,"data_info")$num_edata, nrow(udn_wave$e_data))
   expect_equal(attr(udn_wave,"data_info")$num_miss_obs, sum(is.na(udn_wave$e_data)))
   expect_equal(attr(udn_wave,"data_info")$prop_missing, sum(is.na(udn_wave$e_data))/(nrow(udn_wave$e_data)*(ncol(udn_wave$e_data)-1)))
