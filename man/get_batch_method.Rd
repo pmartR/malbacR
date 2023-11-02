@@ -2,17 +2,18 @@
 % Please edit documentation in R/helper_fns.R
 \name{get_batch_method}
 \alias{get_batch_method}
-\title{Fetch the Batch Effect Method Name}
+\alias{get_data_batch}
+\title{Fetch the Logical Vector of if data has been batch corrected}
 \usage{
-get_batch_method(omicsData)
+get_data_batch(omicsData)
 }
 \arguments{
 \item{omicsData}{An object of class pepData, proData, metabData, lipidData,
 or nmrData.}
 }
 \value{
-A character vector specifying the batch correction method used (NULL if no batch correction applied)
+A logical value specifying if batch correction has been applied or not (TRUE FALSE if no batch correction applied)
 }
 \description{
-Retrieves the name of the batch effect
+Retrieves the TRUE/FALSE statement of if data has been batch corrected
 }
