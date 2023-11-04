@@ -61,7 +61,8 @@ bc_power <- function(omicsData) {
   # power scaling calculation
   edatScaled <- edat %>%
     dplyr::select(-cname) %>%
-    scale_method(methods = "power")
+    scale_method(methods = "power") %>%
+    t()
 
   # create pmart object --------------------------------------------------------
   

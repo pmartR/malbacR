@@ -55,7 +55,8 @@ bc_pareto <- function(omicsData) {
   # pareto scaling calculation
   edatScaled <- edat %>%
     dplyr::select(-cname) %>%
-    scale_method(methods = "pareto")
+    scale_method(methods = "pareto") %>%
+    t()
   
   # create pmart object --------------------------------------------------------
   

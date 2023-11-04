@@ -64,7 +64,8 @@ bc_range <- function(omicsData) {
   # range scaling calculation
   edatScaled <- edat %>%
     dplyr::select(-cname) %>%
-    scale_method(methods = "range")
+    scale_method(methods = "range") %>%
+    t()
   
   # create pmart object --------------------------------------------------------
   
