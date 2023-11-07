@@ -79,19 +79,20 @@ bc_eigenMS <- function(omicsData){
   
   # set up the prot.info parameter
   # use emeta data or create a meta data frame if there is none
-  if(!is.null(omicsData$e_meta)) {
-    meta = omicsData$e_meta
-    # need to know if the edata and emeta are in the same order
-    emeta_cname = pmartR::get_emeta_cname(omicsData)
-    emeta_cname_num = which(colnames(omicsData$e_meta)== pmartR::get_emeta_cname(omicsData))
-    edat_emet_ordering = match(meta[,emeta_cname_num],orig_edat_rows)
-    meta = meta[edat_emet_ordering,]
-    meta <- meta %>%
-      dplyr::relocate(dplyr::all_of(emeta_cname))
-      
-  } else {
-    meta = data.frame(omicsData$e_data[,cnameCol])
-  }
+  # if(!is.null(omicsData$e_meta)) {
+  #   meta = omicsData$e_meta
+  #   # need to know if the edata and emeta are in the same order
+  #   emeta_cname = pmartR::get_emeta_cname(omicsData)
+  #   emeta_cname_num = which(colnames(omicsData$e_meta)== pmartR::get_emeta_cname(omicsData))
+  #   edat_emet_ordering = match(meta[,emeta_cname_num],orig_edat_rows)
+  #   meta = meta[edat_emet_ordering,]
+  #   meta <- meta %>%
+  #     dplyr::relocate(dplyr::all_of(emeta_cname))
+  #     
+  # } else {
+  #   meta = data.frame(omicsData$e_data[,cnameCol])
+  # }
+  meta = data.frame(omicsData$e_data[,cnameCol])
   
   # we need to set a seed so results remain constant each time we run it
   set.seed(12345)
