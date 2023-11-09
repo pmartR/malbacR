@@ -115,10 +115,10 @@ bc_waveica <- function(omicsData,injection_cname, alpha = 0, cutoff = 0.1, K = 1
   
   # find the values needed for the normalize function
   # find the parameter Y (the e_data abundance values)
-  edat <- as.matrix(omicsData$e_data[,-1]) %>%
+  edat <- as.matrix(omicsData$e_data[,-cnameCol]) %>%
     t() %>%
     data.frame()
-  molecules <- omicsData$e_data[,1]
+  molecules <- omicsData$e_data[,cnameCol]
   colnames(edat) <- molecules
   
   # make sure fdata sampleid and edat are in the same order
