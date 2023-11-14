@@ -2,9 +2,19 @@
 % Please edit documentation in R/bc_waveica.R
 \name{bc_waveica}
 \alias{bc_waveica}
-\title{WaveICA_2.0 batch correction}
+\title{WaveICA batch correction}
 \usage{
-bc_waveica(omicsData, injection_cname, alpha = 0, cutoff = 0.1, K = 10)
+bc_waveica(
+  omicsData,
+  batch_cname = NULL,
+  injection_cname = NULL,
+  version = "WaveICA",
+  alpha = 0,
+  cutoff_injection = 0.1,
+  K = 20,
+  cutoff_batch = 0.05,
+  cutoff_group = 0.05
+)
 }
 \arguments{
 \item{omicsData}{an object of the class 'pepData', 'proData', 'metabData',
@@ -13,22 +23,35 @@ bc_waveica(omicsData, injection_cname, alpha = 0, cutoff = 0.1, K = 10)
 \code{\link{as.lipidData}}, or \code{\link{as.nmrData}}, respectively.}
 
 \item{injection_cname}{character string giving the name of the column in omicsData$f_data
-that contains the run order of the samples}
+that contains the run order of the samples (to be used for WaveICA2.0)}
+
+\item{version}{character string that specifies whether the user wants to run "WaveICA"
+or "WaveICA2.0" (default is "WaveICA")}
 
 \item{alpha}{tradeoff value between the independence of samples and those of variables in ICA,
 and should be between 0 and 1, defaults to 0}
 
-\item{cutoff}{threshold of the variation explained by the injection order for independent components,
-should be between 0 and 1, defaults to 0.1}
+\item{cutoff_injection}{threshold of the variation explained by the injection order for independent components,
+should be between 0 and 1, defaults to 0.1 (to be used for WaveICA2.0)}
 
-\item{K}{maximal component that ICA decomposes, defaults to 10}
+\item{K}{maximal component that ICA decomposes, defaults to 20 (though recommendation for K = 10
+when using "WaveICA2.0")}
+
+\item{cutoff_batch}{threshold of the variation explained by the batch for independent components,
+should be between 0 and 1, defaults to 0.05 (to be used for WaveICA)}
+
+\item{cutoff_group}{threshold of the variation explained by the group for independent components,
+should be between 0 and 1, defaults to 0.05 (to be used for WaveICA)}
+
+\item{batach_cname}{character string giving the name of the colum in omicsData$f_data
+that contains the batch information of the samples (to be used for WaveICA)}
 }
 \value{
 Object of same class as omicsData that has been undergone
   WaveICA normalization
 }
 \description{
-This function returns a pmart object that has been undergone WaveICA_2.0
+This function returns a pmart object that has been undergone either WaveICA or WaveICA_2.0
  batch effect correction
 }
 \examples{
@@ -40,7 +63,7 @@ pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "
 impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 amide_wave <- bc_waveica(omicsData = amide_imp, injection_cname = "Injection_order",
-                         alpha = 0, cutoff = 0.1, K = 10)
+                         version = "WaveICA2.0",alpha = 0, cutoff_injection = 0.1, K = 10)
 
 }
 \author{
