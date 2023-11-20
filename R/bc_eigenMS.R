@@ -123,15 +123,17 @@ bc_eigenMS <- function(omicsData){
   # need to update emeta if the data since we may have removed samples in the process
   # that do not have enough molecules
   if(!is.null(omicsData$e_meta)){
-    emet = eigen_ms$normalized[,colnames(eigen_ms$normalized) %in% colnames(omicsData$e_meta)]
-    rownames(emet) = NULL
+    emet = omicsData$e_meta
     emet_cname = pmartR::get_emeta_cname(omicsData)
-    emeta_cname_num = which(colnames(omicsData$e_meta)== pmartR::get_emeta_cname(omicsData))
-    nrow_emet = nrow(emet)
-    # put back in the right order
-    emet = emet[rank(match(emet[,emet_cname],omicsData$e_meta[,emet_cname])),]
-    emet <- emet %>%
-      dplyr::select(dplyr::all_of(colnames(omicsData$e_meta)))
+    # emet = eigen_ms$normalized[,colnames(eigen_ms$normalized) %in% colnames(omicsData$e_meta)]
+    # rownames(emet) = NULL
+    # emet_cname = pmartR::get_emeta_cname(omicsData)
+    # emeta_cname_num = which(colnames(omicsData$e_meta)== pmartR::get_emeta_cname(omicsData))
+    # nrow_emet = nrow(emet)
+    # # put back in the right order
+    # emet = emet[rank(match(emet[,emet_cname],omicsData$e_meta[,emet_cname])),]
+    # emet <- emet %>%
+    #   dplyr::select(dplyr::all_of(colnames(omicsData$e_meta)))
   }
   
   # create the pmart object #
