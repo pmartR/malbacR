@@ -25,6 +25,9 @@ that contains the sample type information (such as quality control samples)}
 \item{test_val}{character string giving the name of the value within the column sampletype_cname to be used
 as the testing value for TIGER}
 
+\item{group_cname}{character string giving the name of the column in omicsData$f_data
+that contians the group information}
+
 \item{position_cname}{character string giving the name of the column in omicsData$f_data that
 contains the well position, default is NULL}
 

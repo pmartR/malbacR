@@ -29,8 +29,8 @@ indicates a QC sample}
 \item{order_cname}{character string giving name of column in omicsData$f_data
 that contains the run order}
 
-\item{group_cname}{character string giving the name of column in omicsData$f_data
-that contains the variable indicating the biological groups of interest}
+\item{group_cname}{character string giving the name of the column in omicsData$f_data
+that contians the group information}
 
 \item{ntree}{number of trees to grow in random forest model (default is set to 500)}
 

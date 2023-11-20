@@ -13,8 +13,8 @@
 #'  indicates a QC sample
 #' @param order_cname character string giving name of column in omicsData$f_data
 #'  that contains the run order
-#' @param group_cname character string giving the name of column in omicsData$f_data
-#'  that contains the variable indicating the biological groups of interest
+#' @param group_cname character string giving the name of the column in omicsData$f_data
+#'  that contians the group information
 #' @param ntree number of trees to grow in random forest model (default is set to 500)
 #' @param keep_qc logical value to determine whether or not to include QC samples in the final output
 #'   of the data (default is set to FALSE)

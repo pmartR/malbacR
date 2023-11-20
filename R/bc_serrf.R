@@ -11,6 +11,8 @@
 #'  that contains the sample type information (such as quality control samples)
 #' @param test_val character string giving the name of the value within the column sampletype_cname to be used
 #'  as the testing value for SERRF
+#' @param group_cname character string giving the name of the column in omicsData$f_data
+#'  that contians the group information
 #'  
 #' @return Object of same class as omicsData that has been undergone
 #'   SERRF normalization
