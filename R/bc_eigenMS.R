@@ -43,6 +43,10 @@ bc_eigenMS <- function(omicsData){
   }
   
   # find the eigenMS values ----------------------------------------------------
+  # retain seed after  running code
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
+  
   # set up the m parameter (the e_data)
   cnameCol = which(colnames(omicsData$e_data) == pmartR::get_edata_cname(omicsData))
   orig_edat_rows = omicsData$e_data[,cnameCol]
@@ -77,21 +81,6 @@ bc_eigenMS <- function(omicsData){
     stop("omicsData must have molecule filter applied with use_groups = TRUE and min_num = 1")
   }
   
-  # set up the prot.info parameter
-  # use emeta data or create a meta data frame if there is none
-  # if(!is.null(omicsData$e_meta)) {
-  #   meta = omicsData$e_meta
-  #   # need to know if the edata and emeta are in the same order
-  #   emeta_cname = pmartR::get_emeta_cname(omicsData)
-  #   emeta_cname_num = which(colnames(omicsData$e_meta)== pmartR::get_emeta_cname(omicsData))
-  #   edat_emet_ordering = match(meta[,emeta_cname_num],orig_edat_rows)
-  #   meta = meta[edat_emet_ordering,]
-  #   meta <- meta %>%
-  #     dplyr::relocate(dplyr::all_of(emeta_cname))
-  #     
-  # } else {
-  #   meta = data.frame(omicsData$e_data[,cnameCol])
-  # }
   meta = data.frame(omicsData$e_data[,cnameCol])
   
   # we need to set a seed so results remain constant each time we run it
@@ -125,15 +114,6 @@ bc_eigenMS <- function(omicsData){
   if(!is.null(omicsData$e_meta)){
     emet = omicsData$e_meta
     emet_cname = pmartR::get_emeta_cname(omicsData)
-    # emet = eigen_ms$normalized[,colnames(eigen_ms$normalized) %in% colnames(omicsData$e_meta)]
-    # rownames(emet) = NULL
-    # emet_cname = pmartR::get_emeta_cname(omicsData)
-    # emeta_cname_num = which(colnames(omicsData$e_meta)== pmartR::get_emeta_cname(omicsData))
-    # nrow_emet = nrow(emet)
-    # # put back in the right order
-    # emet = emet[rank(match(emet[,emet_cname],omicsData$e_meta[,emet_cname])),]
-    # emet <- emet %>%
-    #   dplyr::select(dplyr::all_of(colnames(omicsData$e_meta)))
   }
   
   # create the pmart object #

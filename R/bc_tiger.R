@@ -140,6 +140,9 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,group_cname,position_c
   # }
   
   # run the TIGER calculations -------------------------------------------------
+  # retain seed after  running code
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
   
   # make sure we are aligning fdata and edata correctly
   fdata_sampleID_ordering <- omicsData$f_data[fdata_cnameCol]

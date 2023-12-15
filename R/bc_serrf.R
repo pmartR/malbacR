@@ -116,12 +116,14 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   }
   
   # run the SERRF calculations -------------------------------------------------
+  # retain seed after  running code
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
+  
   # set up row names to be the edata
   rownames(omicsData$e_data) <- omicsData$e_data[,edata_cnameCol]
   edata <- omicsData$e_data[,-edata_cnameCol]
   fdata <- omicsData$f_data
-  
-  
   
   # separate the edata based on QC or not QC
   qc_sampNames = fdata[fdata[,sampletype_cname] == test_val,][[fdata_cnameCol]]
@@ -254,7 +256,15 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
       norm_dat <- matrix(nrow=nrow(tst),ncol=ncol(tst))
       colnames(norm_dat) <- tbl_colnames
       
-      doParallel::registerDoParallel(parallel::detectCores()-1)
+      # set up parallel computing
+      cl <- parallel::makeCluster(parallel::detectCores()-1)
+      on.exit(parallel::stopCluster(cl))
+      doParallel::registerDoParallel(cl)
+      parallel::clusterExport(cl,
+                              c("batch_info", "batchName", "corrs_train",
+                                "corrs_target", "training_dat", "testing_dat"),
+                              envir = environment())
+      
       # for each molecule normalize the data
       nd <- foreach::foreach(i = 1:ncol(norm_dat),.combine = cbind) %dopar% {
         # find what variables we are working with num_cor

@@ -54,7 +54,7 @@ imputation <- function (omicsData) {
   
   # recommend running imputation on log2 scale
   if(attributes(omicsData)$data_info$data_scale != "log2"){
-    stop ("Imputation is recommended on data that is on log2 scale. Please transform your data to be log2.")
+    stop ("Data must be on log2 scale to imputed. Please transform your data.")
   }
   
   # tranpose the data to be molecules as columns and rows are samples

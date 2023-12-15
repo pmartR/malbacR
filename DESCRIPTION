@@ -33,7 +33,9 @@ Imports:
     pmartR,
     pmartRdata,
     JADE,
-    corpcor
+    corpcor,
+    caret,
+    grDevices
 Remotes:
     github::hafen/trelliscopejs,
     github::dengkuistat/WaveICA_2.0,

@@ -26,6 +26,9 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
                "omicsData must have group_designation ran")
   
   # Check the dimensions of results --------------------------------------------
+  # retain seed after  running code
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
   
   # run the real version
   mdata <- pmartR::group_designation(mdata,main_effects = "Age",

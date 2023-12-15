@@ -172,6 +172,9 @@ bc_waveica <- function(omicsData,batch_cname = NULL, injection_cname = NULL, ver
   }
   
   # run the WaveICA2.0 calculations -------------------------------------------------
+  # retain seed after  running code
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
   
   # find the values needed for the normalize function
   # find the parameter Y (the e_data abundance values)
