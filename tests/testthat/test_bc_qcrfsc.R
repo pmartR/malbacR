@@ -39,7 +39,7 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
                          order_cname = "RunOrderOverall"),
                "omicsData must have undergone group designation")
   # so add in group designation
-  mdata <- group_designation(mdata,main_effects = "Age")
+  mdata <- pmartR::group_designation(mdata,main_effects = "Age")
   
   # QCCNAME
   # must be a character value

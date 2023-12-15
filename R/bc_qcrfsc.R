@@ -157,7 +157,7 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,group_cname,ntree = 
   if(!is.null(attributes(omicsData)$imputation_info)){
     orig_edata = attributes(omicsData)$original_edata
     groupDat <- attr(omicsData,"group_DF")
-    id_col <- which(names(orig_edata) == get_edata_cname(omicsData))
+    id_col <- which(names(orig_edata) == pmartR::get_edata_cname(omicsData))
     ordering = omicsData$e_data[,id_col]
     # Create a data frame with the ID columns and the minimum number of non-missing values per grouping
     output <- orig_edata %>%
