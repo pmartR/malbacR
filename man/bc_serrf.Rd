@@ -37,7 +37,8 @@ pmart_amide <- edata_transform(pmart_amide,"log2")
 pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
 impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC",group_cname = "group")
+amide_imp_abund <- edata_transform(amide_imp,"abundance")
+amide_serrf <- bc_serrf(omicsData = amide_imp_abund,sampletype_cname = "group",test_val = "QC",group_cname = "group")
 
 }
 \author{

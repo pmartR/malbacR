@@ -25,7 +25,8 @@
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
 #' impObj <- imputation(omicsData = pmart_amide)
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-#' amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC",group_cname = "group")
+#' amide_imp_abund <- edata_transform(amide_imp,"abundance")
+#' amide_serrf <- bc_serrf(omicsData = amide_imp_abund,sampletype_cname = "group",test_val = "QC",group_cname = "group")
 #' 
 #' @author Damon Leach
 #' 
@@ -351,7 +352,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
         norm_dat[,trn_current_var_col] <- serrf_bnq
       }
       
-      # now make it a datframe and add back in rownname information
+      # now make it a dataframe and add back in rownname information
       norm_dat <- data.frame(nd)
       colnames(norm_dat) = colnames(tst)
       rownames(norm_dat) <- rownames(tst)
@@ -360,6 +361,11 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   
   # combine all the different batch normalizations together
   all_dat <- do.call("rbind", dat_nest$norm_data)
+  for(i in 1:nrow(all_dat)){
+    all_dat[i,is.na(all_dat[i,])] = rnorm(sum(is.na(all_dat[i,])), mean = min(all_dat[i,!is.na(all_dat[i,])], na.rm = TRUE), sd = sd(all_dat[i,!is.na(all_dat[i,])])*0.1)
+    all_dat[i,all_dat[i,]<0] = runif(1) * min(all_dat[i,all_dat[i,]>0], na.rm = TRUE)
+  }
+
   # put back into molecule x sample order
   edata_serrf <- all_dat %>%
     t() %>%
