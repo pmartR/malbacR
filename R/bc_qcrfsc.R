@@ -186,6 +186,7 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,group_cname,ntree = 
   
   # run QCRSFC -----------------------------------------------------------------
   # retain seed after  running code
+  if (!exists(".Random.seed")) runif(1)
   old_seed <- .Random.seed
   on.exit(.Random.seed <- old_seed)
   

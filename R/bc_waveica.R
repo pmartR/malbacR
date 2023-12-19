@@ -173,6 +173,7 @@ bc_waveica <- function(omicsData,batch_cname = NULL, injection_cname = NULL, ver
   
   # run the WaveICA2.0 calculations -------------------------------------------------
   # retain seed after  running code
+  if (!exists(".Random.seed")) runif(1)
   old_seed <- .Random.seed
   on.exit(.Random.seed <- old_seed)
   

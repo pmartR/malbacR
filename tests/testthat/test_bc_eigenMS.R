@@ -27,6 +27,7 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
   
   # Check the dimensions of results --------------------------------------------
   # retain seed after  running code
+  if (!exists(".Random.seed")) runif(1)
   old_seed <- .Random.seed
   on.exit(.Random.seed <- old_seed)
   
