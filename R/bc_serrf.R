@@ -130,8 +130,8 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   # separate the edata based on QC or not QC
   qc_sampNames = fdata[fdata[,sampletype_cname] == test_val,][[fdata_cnameCol]]
   nonqc_sampNames = fdata[fdata[,sampletype_cname] != test_val,][[fdata_cnameCol]]
-  edataQC <- edata %>% dplyr::select(dplyr::all_of(qc_sampNames))
-  edata_noQC <- edata %>% dplyr::select(dplyr::all_of(nonqc_sampNames))
+  edataQC <- edata %>% dplyr::select(-dplyr::all_of(nonqc_sampNames))
+  edata_noQC <- edata %>% dplyr::select(-dplyr::all_of(qc_sampNames))
   
   # now add in fdata information to the data for QC and non QC samples
   edataQC_t <- edataQC %>%
@@ -378,7 +378,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
     dplyr::select(-dplyr::all_of(qc_sampNames))
   og_edata_ordering <- colnames(og_edata)
   edata_serrf <- edata_serrf %>% dplyr::select(dplyr::all_of(og_edata_ordering))
-  edata_serrf[,edata_cname] <- edata_serrf[order(edata_serrf[,edata_cname],omicsData$e_data[,edata_cname]),][[edata_cname]]
+  edata_serrf[,edata_cname] <- edata_serrf[match(edata_serrf[,edata_cname],omicsData$e_data[,edata_cname]),][[edata_cname]]
   
   # filter out the old QC samples
   fdata_serrf <- fdata[fdata[,sampletype_cname] != test_val,]
