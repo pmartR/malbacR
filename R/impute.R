@@ -103,6 +103,7 @@ imputation <- function (omicsData) {
 #' @examples
 #' library(malbacR)
 #' data("pmart_amide")
+#' library(pmartR)
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' impFilt <- imputation(pmart_amide)
 #' imputed_data <- apply_imputation(impFilt,pmart_amide)
