@@ -17,8 +17,8 @@ test_that('loglik function in RUVrand returns correct value',{
                                 fdata_cname = 'SampleID',
                                 emeta_cname = 'Metabolite',
                                 data_scale = 'log2')
-  molfilt <- molecule_filter(mdata)
-  mdata <- applyFilt(molfilt,mdata)
+  molfilt <- pmartR::molecule_filter(mdata)
+  mdata <- pmartR::applyFilt(molfilt,mdata)
   impObj <- imputation(mdata)
   mdata <- apply_imputation(impObj,mdata)
   # data manipulation for setting up ruv-random
