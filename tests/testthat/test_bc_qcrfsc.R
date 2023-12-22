@@ -163,8 +163,8 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
                "QCRFSC requires no missing observations. Remove molecules with missing samples.")
   
   # apply imputation to remove missing values
-  molfilt <- molecule_filter(mdata,use_groups = TRUE)
-  mdata <- applyFilt(molfilt,mdata)
+  molfilt <- pmartR::molecule_filter(mdata,use_groups = TRUE)
+  mdata <- pmartR::applyFilt(molfilt,mdata)
   mdata_log <- pmartR::edata_transform(mdata,"log2")
   impObj <- imputation(mdata_log)
   mdata_imp <- apply_imputation(impObj,mdata_log)
