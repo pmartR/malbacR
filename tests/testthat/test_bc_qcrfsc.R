@@ -250,9 +250,9 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
   attr(udn_with_emet,"data_info") <- attr(mdata,"data_info")
   
   # apply imputation to remove missing values
-  udn_with_emet <- group_designation(udn_with_emet,main_effects = "Age")
-  molfilt <- molecule_filter(udn_with_emet,use_groups = TRUE)
-  udn_with_emet <- applyFilt(molfilt,udn_with_emet)
+  udn_with_emet <- pmartR::group_designation(udn_with_emet,main_effects = "Age")
+  molfilt <- pmartR::molecule_filter(udn_with_emet,use_groups = TRUE)
+  udn_with_emet <- pmartR::applyFilt(molfilt,udn_with_emet)
   udn_with_emet_log <- pmartR::edata_transform(udn_with_emet,"log2")
   impObj <- imputation(udn_with_emet_log)
   udn_with_emet <- apply_imputation(impObj,udn_with_emet_log)
