@@ -16,7 +16,8 @@ test_that('bc_combat returns the correct data frame and attributes',{
                       e_meta = emeta,
                       edata_cname = 'Mass_Tag_ID',
                       fdata_cname = 'SampleID',
-                      emeta_cname = 'Protein')
+                      emeta_cname = 'Protein',
+                      data_scale = 'abundance')
   # add a grouping variable and a batch variable
   pdata$f_data$Grouping <- c(rep("Infection",6),rep("Mock",6))
   pdata$f_data$Batch <- rep(c(1,2),6)
@@ -56,6 +57,11 @@ test_that('bc_combat returns the correct data frame and attributes',{
   # check to make sure molecule filter has not been applied to the data (even molecule filter)
   expect_equal("moleculeFilt" %in% unlist(lapply(attr(pdataComplete,"filters"),function(x){x$type})),
                FALSE)
+  
+  # what if data not log2
+  pdataComplete_abundance <- pmartR::edata_transform(pdataComplete, "abundance")
+  expect_error(bc_combat(pdataComplete_abundance),
+               "ComBat must be ran with log2 abundance values")
   
   # run batch correction
   pdataCompleteBC <- bc_combat(pdataComplete)

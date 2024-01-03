@@ -65,6 +65,11 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
     )
   }
   
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("RUV-random must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
+  
   # which column has the edata cname
   cnameCol <- which(colnames(omicsData$e_data) == pmartR::get_edata_cname(omicsData))
   if (sum(is.na(omicsData$e_data[,-cnameCol]))!=0) {

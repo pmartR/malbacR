@@ -63,6 +63,11 @@ bc_combat <- function(omicsData,use_groups = FALSE){
       stop (paste("omicsData must have molecule filter applied with use_batch = TRUE and min_num = 2"))
     }
   }
+  
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("ComBat must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
 
   # important information for downstream analysis ------------------------------
   

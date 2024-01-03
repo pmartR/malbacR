@@ -15,9 +15,8 @@ test_that('tiger_filter returns the correct custom filter and attributes',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = 'Metabolite',
+                                data_scale = 'log2')
   
   # run tiger filter
   tigerFilt <- tiger_filter(omicsData = mdata, sampletype_cname = "QC", test_val = "QC.NIST")
@@ -62,5 +61,7 @@ test_that('tiger_filter returns the correct custom filter and attributes',{
   
   # all things considered - this function should run smoothly then
   mdataFilt <- pmartR::group_designation(omicsData = mdataFilt, main_effects = "Sex", batch_id = "BatchNum")
-  mdata_tiger <- bc_tiger(omicsData = mdataFilt,sampletype_cname = "QC", test_val = "QC.NIST",group_cname = "Age")
+  # must convert to abundance values
+  mdata_abundance <- pmartR::edata_transform(mdataFilt,"abundance")
+  mdata_tiger <- bc_tiger(omicsData = mdata_abundance,sampletype_cname = "QC", test_val = "QC.NIST",group_cname = "Age")
 })

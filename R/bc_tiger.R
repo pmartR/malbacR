@@ -25,7 +25,6 @@
 #' library(malbacR)
 #' library(pmartR)
 #' data("pmart_amide")
-#' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
 #' tigerFilt <- tiger_filter(pmart_amide,sampletype_cname = "group",test_val = "QC")
 #' pmart_amideFilt <- apply_tigerFilt(tigerFilt,pmart_amide)
@@ -53,6 +52,11 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,group_cname,position_c
   if (is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
     stop (paste("omicsData must have batch_id attribute for batch correction",
                 sep = ' '))
+  }
+  
+  # check that data is on abundance scale
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop ("TIGER must be ran with raw abundance values. Please transform your data to 'abundance'.")
   }
   
   # sampletype_cname - type of each sample
@@ -125,6 +129,11 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,group_cname,position_c
     if (!is.numeric(omicsData$f_data[,position_cname])){
       stop("The input parameter position_cname must be a column in f_data with numeric values")
     }
+  }
+  
+  # check that data is on abundance scale
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop ("SERRF must be ran with raw abundance values. Please transform your data to 'abundance'.")
   }
   
   # useful information

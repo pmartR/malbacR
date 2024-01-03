@@ -15,78 +15,83 @@ test_that('bc_waveica returns the correct data frame and attributes',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = 'Metabolite',
+                                data_scale = "log2")
   
   # Run through the potential error messages -----------------------------------
   # WAVICA OG
   # WAVEICA 2.0
+  # data must be raw abundance values
+  expect_error(bc_waveica(omicsData = mdata,batch_cname = "Batch"),
+               "WaveICA must be ran with raw abundance values")
+  # convert to raw abundance values
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  
   # BATCH CNAME
   # give batch_cname two columns
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = c("batch","Batch")),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = c("batch","Batch")),
                "Input parameter batch_cname must be of length 1")
   # batch_cname must be a character string
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = 1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = 1),
                "Input parameter batch_cname must be of class 'character'")
   # batch_cname must be a column in fdata
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "Batch"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "Batch"),
                "Input parameter batch_cname must be a column found in f_data of omicsData")
   
   # ALPHA
   # cannot have two elements in vector
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",alpha = c(0,1)),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",alpha = c(0,1)),
                "Input parameter alpha must be of length 1")
   # must be numeric
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",alpha = "Batch"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",alpha = "Batch"),
                "Input parameter alpha must be of class 'numeric'")
   # alpha has to be between 0 and 1
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",alpha = -1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",alpha = -1),
                "Input parameter alpha must be between 0 and 1 inclusive")
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",alpha = 5),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",alpha = 5),
                "Input parameter alpha must be between 0 and 1 inclusive")
   
   # CUTOFF_BATCH
   # cannot have two elements in vector
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",cutoff_batch = c(0,1)),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",cutoff_batch = c(0,1)),
                "Input parameter cutoff_batch must be of length 1")
   # must be numeric
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",cutoff_batch = "Batch"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",cutoff_batch = "Batch"),
                "Input parameter cutoff_batch must be of class 'numeric'")
   # cutoff_batch has to be between 0 and 1
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",cutoff_batch = -1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",cutoff_batch = -1),
                "Input parameter cutoff_batch must be between 0 and 1 inclusive")
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",cutoff_batch = 5),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",cutoff_batch = 5),
                "Input parameter cutoff_batch must be between 0 and 1 inclusive")
   
   # CUTOFF_GROUP
   # cannot have two elements in vector
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",cutoff_group = c(0,1)),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",cutoff_group = c(0,1)),
                "Input parameter cutoff_group must be of length 1")
   # must be numeric
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",cutoff_group = "Batch"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",cutoff_group = "Batch"),
                "Input parameter cutoff_group must be of class 'numeric'")
   # cutoff_group has to be between 0 and 1
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",cutoff_group = -1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",cutoff_group = -1),
                "Input parameter cutoff_group must be between 0 and 1 inclusive")
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",cutoff_group = 5),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",cutoff_group = 5),
                "Input parameter cutoff_group must be between 0 and 1 inclusive")
   
   # K
   # cannot have two elements in vector
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",alpha = c(0,1)),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",alpha = c(0,1)),
                "Input parameter alpha must be of length 1")
   # must be numeric
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",K = "Batch"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",K = "Batch"),
                "Input parameter K must be of class 'numeric'")
   # K has to be greater than 0
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",K = 0),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",K = 0),
                "Input parameter K must be greater than 0")
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum",K = -1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum",K = -1),
                "Input parameter K must be greater than 0")
   
   # cannot have missing values
-  expect_error(bc_waveica(omicsData = mdata,batch_cname = "BatchNum"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,batch_cname = "BatchNum"),
                "WaveICA requires no missing observations. Remove molecules with missing samples")
   
   # Check the dimensions of results --------------------------------------------
@@ -94,6 +99,9 @@ test_that('bc_waveica returns the correct data frame and attributes',{
   keep <- mdata$e_data[which(complete.cases(mdata$e_data[,-1])),1]
   cfilt <- pmartR::custom_filter(mdata,e_data_keep = keep)
   udn_complete <- pmartR::applyFilt(cfilt,mdata)
+  # convert to raw abundance values
+  udn_complete <- pmartR::edata_transform(udn_complete,"abundance")
+  
   # run wave ica
   udn_wave <- bc_waveica(udn_complete,batch_cname = "BatchNum")
   
@@ -114,7 +122,7 @@ test_that('bc_waveica returns the correct data frame and attributes',{
   expect_equal(attr(udn_complete,"cnames"),attr(udn_wave,"cnames"))
   # check data info except for batch info
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:2],
+  expect_equal(attributes(udn_complete)$data_info[1:2],
                attributes(udn_wave)$data_info[1:2])
   expect_equal(attributes(udn_wave)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_wave,"data_info")$num_edata, nrow(udn_wave$e_data))
@@ -143,58 +151,61 @@ test_that('bc_waveica returns the correct data frame and attributes',{
                                                                              K = 20)))
   
   # WAVEICA 2.0
+  # cannot be ran with log2 values
+  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall"),
+               "WaveICA must be ran with raw abundance values")
   # INJECTION CNAME
   # give injection_cname two columns
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = c("RunOrderOverall","RunOrderBatch")),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = c("RunOrderOverall","RunOrderBatch")),
                "Input parameter injection_cname must be of length 1")
   # injection_cname must be a character string
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = 1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = 1),
                "Input parameter injection_cname must be of class 'character'")
   # injection_cname must be a column in fdata
-  expect_error(bc_waveica(omicsData = mdata, version = "WaveICA2.0", injection_cname = "RunningOrder"),
+  expect_error(bc_waveica(omicsData = mdata_abundance, version = "WaveICA2.0", injection_cname = "RunningOrder"),
                "Input parameter injection_cname must be a column found in f_data of omicsData")
   
   # ALPHA
   # cannot have two elements in vector
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = c(0,1)),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = c(0,1)),
                "Input parameter alpha must be of length 1")
   # must be numeric
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = "Batch"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = "Batch"),
                "Input parameter alpha must be of class 'numeric'")
   # alpha has to be between 0 and 1
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = -1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = -1),
                "Input parameter alpha must be between 0 and 1 inclusive")
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = 5),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = 5),
                "Input parameter alpha must be between 0 and 1 inclusive")
   
   # CUTOFF_INJECTION
   # cannot have two elements in vector
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",cutoff_injection = c(0,1)),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",cutoff_injection = c(0,1)),
                "Input parameter cutoff_injection must be of length 1")
   # must be numeric
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",cutoff_injection = "Batch"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",cutoff_injection = "Batch"),
                "Input parameter cutoff_injection must be of class 'numeric'")
   # cutoff_injection has to be between 0 and 1
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",cutoff_injection = -1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",cutoff_injection = -1),
                "Input parameter cutoff_injection must be between 0 and 1 inclusive")
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",cutoff_injection = 5),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",cutoff_injection = 5),
                "Input parameter cutoff_injection must be between 0 and 1 inclusive")
   
   # K
   # cannot have two elements in vector
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = c(0,1)),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",alpha = c(0,1)),
                "Input parameter alpha must be of length 1")
   # must be numeric
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",K = "Batch"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",K = "Batch"),
                "Input parameter K must be of class 'numeric'")
   # K has to be greater than 0
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",K = 0),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",K = 0),
                "Input parameter K must be greater than 0")
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall",K = -1),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall",K = -1),
                "Input parameter K must be greater than 0")
   
   # cannot have missing values
-  expect_error(bc_waveica(omicsData = mdata,version = "WaveICA2.0",injection_cname = "RunOrderOverall"),
+  expect_error(bc_waveica(omicsData = mdata_abundance,version = "WaveICA2.0",injection_cname = "RunOrderOverall"),
                "WaveICA requires no missing observations. Remove molecules with missing samples")
   
   # Check the dimensions of results --------------------------------------------
@@ -202,6 +213,8 @@ test_that('bc_waveica returns the correct data frame and attributes',{
   keep <- mdata$e_data[which(complete.cases(mdata$e_data[,-1])),1]
   cfilt <- pmartR::custom_filter(mdata,e_data_keep = keep)
   udn_complete <- pmartR::applyFilt(cfilt,mdata)
+  # convert to raw abundance values
+  udn_complete <- pmartR::edata_transform(udn_complete,"abundance")
   # run wave ica
   udn_wave <- bc_waveica(udn_complete,version = "WaveICA2.0",injection_cname = "RunOrderOverall")
 
@@ -222,8 +235,9 @@ test_that('bc_waveica returns the correct data frame and attributes',{
   expect_equal(attr(udn_complete,"cnames"),attr(udn_wave,"cnames"))
   # check data info except for batch info
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:2],
+  expect_equal(attributes(udn_complete)$data_info[1:2],
                attributes(udn_wave)$data_info[1:2])
+  
   expect_equal(attributes(udn_wave)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_wave,"data_info")$num_edata, nrow(udn_wave$e_data))
   expect_equal(attr(udn_wave,"data_info")$num_miss_obs, sum(is.na(udn_wave$e_data)))

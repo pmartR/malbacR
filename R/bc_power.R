@@ -43,6 +43,11 @@ bc_power <- function(omicsData) {
     stop("Power scaling cannot run with expression data that has negative values (likely
          due to normalization without a backtransform")
   }
+  
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("Power Scaling must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
 
   # important info for compiling pmart object later ----------------------------
   # find the individual data sets 
@@ -60,7 +65,7 @@ bc_power <- function(omicsData) {
   
   # power scaling calculation
   edatScaled <- edat %>%
-    dplyr::select(-cname) %>%
+    dplyr::select(-dplyr::all_of(cname)) %>%
     scale_method(methods = "power") %>%
     t()
 
@@ -68,7 +73,7 @@ bc_power <- function(omicsData) {
   
   # format the edata
   edatScaled <- edat %>%
-    dplyr::select(cname) %>%
+    dplyr::select(dplyr::all_of(cname)) %>%
     cbind(edatScaled)
   
   # create the pmart object #

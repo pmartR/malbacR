@@ -54,6 +54,11 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
     )
   }
   
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("QC-RLSC must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
+  
   # check that input parameters that should be character strings are indeed character strings, and each is a vector of length 1#
   if (class(block_cname) != "character") {
     stop("Input parameter block_cname must be of class 'character'.")

@@ -16,7 +16,7 @@
 #' 
 #' @examples
 #' library(malbacR)
-#' library(pmartRdata)
+#' library(pmartR)
 #' data(pmart_amide)
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
 #' tigerFilt <- tiger_filter(omicsData = pmart_amide,sampletype_cname = "group", test_val = "QC")

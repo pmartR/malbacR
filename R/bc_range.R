@@ -46,6 +46,11 @@ bc_range <- function(omicsData) {
     stop (paste("Range Scaling requires that each biomolecule be present in at least 2 samples"))
   }
   
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("Range Scaling must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
+  
   # important info for compiling pmart object later ----------------------------
   # find the individual data sets
   edat <- omicsData$e_data
@@ -63,7 +68,7 @@ bc_range <- function(omicsData) {
   
   # range scaling calculation
   edatScaled <- edat %>%
-    dplyr::select(-cname) %>%
+    dplyr::select(-dplyr::all_of(cname)) %>%
     scale_method(methods = "range") %>%
     t()
   
@@ -71,7 +76,7 @@ bc_range <- function(omicsData) {
   
   # add back in edata_cname to edata
   edatScaled <- edat %>%
-    dplyr::select(cname) %>%
+    dplyr::select(dplyr::all_of(cname)) %>%
     cbind(edatScaled)
   
   # create the pmart object #

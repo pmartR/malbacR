@@ -15,9 +15,8 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = "Metabolite")
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = "Metabolite",
+                                data_scale = "log2")
   
   # Run through the different warnings! ----------------------------------------
   # block_cname needs to be a column in the fdata
@@ -92,6 +91,15 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
                          qc_val = "QC.NIST",
                          order_cname = "RunOrderOverall"),
                "The following molecules have too few non-missing QC data points in at least one")
+  
+  # what if data is not log2
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  expect_error(bc_qcrlsc(omicsData = mdata_abundance,
+                         block_cname = "BatchNum",
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall"),
+               "QC-RLSC must be ran with log2 abundance values")
   
   # we need to load the bigger data set 
   # Load the reduced metabolite data frames ------------------------------------

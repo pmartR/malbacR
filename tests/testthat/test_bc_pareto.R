@@ -16,9 +16,16 @@ test_that('bc_pareto returns the correct data frame and attributes',{
                       e_meta = emeta,
                       edata_cname = 'Metabolite',
                       fdata_cname = 'SampleID',
-                      emeta_cname = 'Metabolite')
+                      emeta_cname = 'Metabolite',
+                      data_scale = "log2")
   
   # Check the dimensions of results --------------------------------------------
+  # what if data was in abundance
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  expect_error(bc_pareto(mdata_abundance),
+               "Pareto Scaling must be ran with log2 abundance values")
+  
+  # run with log2 data
   mdata_scaled <- bc_pareto(mdata)
   
   # Investigate the e_data, f_data, and e_meta data frames.

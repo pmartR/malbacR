@@ -42,6 +42,11 @@ bc_eigenMS <- function(omicsData){
                 sep = ' '))
   }
   
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("EigenMS must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
+  
   # find the eigenMS values ----------------------------------------------------
   # retain seed after  running code
   if (!exists(".Random.seed")) runif(1)

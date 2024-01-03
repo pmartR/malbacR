@@ -35,7 +35,8 @@
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
 #' impObj <- imputation(omicsData = pmart_amide)
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-#' amide_wave <- bc_waveica(omicsData = amide_imp, injection_cname = "Injection_order",
+#' amide_imp_abundance <- edata_transform(amide_imp,"abundance")
+#' amide_wave <- bc_waveica(omicsData = amide_imp_abundance, injection_cname = "Injection_order",
 #'                          version = "WaveICA2.0",alpha = 0, cutoff_injection = 0.1, K = 10)
 #' 
 #' @author Damon Leach
@@ -53,6 +54,11 @@ bc_waveica <- function(omicsData,batch_cname = NULL, injection_cname = NULL, ver
     stop (paste("omicsData must be of class 'pepData', 'proData', 'metabData',",
                 "'lipidData', or 'nmrData'",
                 sep = ' '))
+  }
+  
+  # check that data is on abundance scale
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop ("WaveICA must be ran with raw abundance values. Please transform your data to 'abundance'.")
   }
   
   # check that whether we are running WaveICA or WaveICA2.0
@@ -225,7 +231,7 @@ bc_waveica <- function(omicsData,batch_cname = NULL, injection_cname = NULL, ver
     # need to update the e_meta if it exists as NOMIS removes the IS values
     emet_cname = pmartR::get_emeta_cname(omicsData)
     emet_cnameNum = which(colnames(omicsData$e_meta) == emet_cname)
-    emet = omicsData$e_meta[omicsData$e_data[,emet_cnameNum] %in% edatWAVE[,1],]
+    emet = omicsData$e_meta[omicsData$e_meta[,emet_cnameNum] %in% edatWAVE[,1],]
   }
   
   # create the pmart object #

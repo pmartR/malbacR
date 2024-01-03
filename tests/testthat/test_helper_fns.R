@@ -12,9 +12,8 @@ test_that('helper functions pull from correct attributes',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = 'Metabolite',
+                                data_scale = "log2")
   
   expect_identical(get_batch_method(mdata), attributes(mdata)$data_info$batch_info$bc_method)
   expect_identical(get_batch_parameters(mdata), attributes(mdata)$data_info$batch_info$params)
@@ -26,13 +25,12 @@ test_that('helper functions pull from correct attributes',{
   mdata <- pmartR::applyFilt(molfilt,mdata)
   impObj <- imputation(mdata)
   mdata <- apply_imputation(impObj,mdata)
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
   
   # run batch correction
-  mdata_nomis <- bc_nomis(mdata,"IS","IS")
+  mdata_nomis <- bc_nomis(mdata_abundance,"IS","IS")
   mdata_eigenMS <- bc_eigenMS(mdata)
   mdata_pareto <- bc_pareto(mdata)
-  # qcrfsc requires data on abundance scale
-  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
   mdata_qcrfsc <- bc_qcrfsc(mdata_abundance,"QC","QC.NIST","RunOrderOverall","Age")
   # combat requires data to be normalized
   mdata_norm <- pmartR::normalize_global(mdata,"all","median",apply_norm = TRUE,backtransform = TRUE)

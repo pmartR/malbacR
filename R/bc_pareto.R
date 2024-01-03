@@ -36,6 +36,11 @@ bc_pareto <- function(omicsData) {
                 sep = ' '))
   }
   
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("Pareto Scaling must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
+  
   # important info for compiling pmart object later ----------------------------
   # find the individual data sets
   edat <- omicsData$e_data
@@ -54,7 +59,7 @@ bc_pareto <- function(omicsData) {
   
   # pareto scaling calculation
   edatScaled <- edat %>%
-    dplyr::select(-cname) %>%
+    dplyr::select(-dplyr::all_of(cname)) %>%
     scale_method(methods = "pareto") %>%
     t()
   
@@ -62,7 +67,7 @@ bc_pareto <- function(omicsData) {
   
   # put edata into proper format
   edatScaled <- edat %>%
-    dplyr::select(cname) %>%
+    dplyr::select(dplyr::all_of(cname)) %>%
     cbind(edatScaled)
   
   # create the pmart object #

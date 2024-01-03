@@ -54,8 +54,9 @@ bc_qcrfsc <- function(omicsData,qc_cname,qc_val,order_cname,group_cname,ntree = 
                 sep = ' '))
   }
   
+  # check that data is on abundance scale
   if(attributes(omicsData)$data_info$data_scale != "abundance"){
-    stop (paste("For QCRFSC, omicsData must be ran with the scale 'abundance'."))
+    stop ("QC-RFSC must be ran with raw abundance values. Please transform your data to 'abundance'.")
   }
   
   if(is.null(attributes(omicsData)$group_DF)){

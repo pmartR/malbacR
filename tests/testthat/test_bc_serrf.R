@@ -15,9 +15,8 @@ test_that('bc_serrf returns the correct data frame and attributes',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = 'Metabolite',
+                                data_scale = "log2")
   
   # Run through the potential error messages -----------------------------------
   
@@ -71,8 +70,15 @@ test_that('bc_serrf returns the correct data frame and attributes',{
                         group_cname = "Owl"),
                "Input parameter group_cname must be a column found in f_data of omicsData")
   
-  # cannot have missing values in at least one sample of train and testing
+  # serrf must be ran on raw abundance values
   expect_error(bc_serrf(omicsData = mdata, sampletype_cname = "Sex",test_val = "QC.NIST",
+                        group_cname = "Age"),
+               "SERRF must be ran with raw abundance values")
+  # convert to raw abundance values
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  
+  # cannot have missing values in at least one sample of train and testing
+  expect_error(bc_serrf(omicsData = mdata_abundance, sampletype_cname = "Sex",test_val = "QC.NIST",
                         group_cname = "Age"),
                "SERRF requires no missing observations")
   
@@ -84,6 +90,8 @@ test_that('bc_serrf returns the correct data frame and attributes',{
   mdataFilt <- pmartR::applyFilt(molfilt,mdata,min_num = 2)
   impObj <- imputation(mdataFilt)
   mdataImp <- apply_imputation(impObj,mdataFilt)
+  # convert to raw abundance now
+  mdataImp <- pmartR::edata_transform(mdataImp,"abundance")
 
   # run serrf
   udn_serrf <- bc_serrf(omicsData = mdataImp, sampletype_cname = "QC", test_val = "QC.NIST",group_cname = "Age")
@@ -114,7 +122,7 @@ test_that('bc_serrf returns the correct data frame and attributes',{
   expect_equal(attr(mdataImp,"cnames"),attr(udn_serrf,"cnames"))
   # check data info except for batch info
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:2],
+  expect_equal(attributes(mdataImp)$data_info[1:2],
                attributes(udn_serrf)$data_info[1:2])
   expect_equal(attributes(udn_serrf)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_serrf,"data_info")$num_edata, nrow(udn_serrf$e_data))

@@ -33,6 +33,7 @@ Within `malbacR` there are 11 batch correction methods:
 9. WaveICA2.0 [@waveica_paper]
 10. TIGER [@tiger_paper]
 11. SERRF [@serrf_paper]
+12. QC-RFSC [@qcrfsc_paper]
 
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(message = FALSE)
@@ -71,6 +72,8 @@ The "Amide" data set contains information regarding quality control samples. The
 
 It is important to note that the data `pmart_amideFilt` has been filtered, transformed, and imputed such that the data runs with all possible methods, but it may be conservative for a given method. For example, some methods do not require imputation to run, but because some methods require imputation (like SERRF and WaveICA2.0) [@serrf_paper;@waveica_paper], the data has been imputed.
 
+The data is currently on a log2 scale, therefore, the data must be converted to abundance values for the following methods: SERRF, TIGER, QC-RFSC, and WaveICA.
+
 ```{r, results = 'hide'}
 # SCALING METHODS
 # range scaling
@@ -84,8 +87,10 @@ amide_pareto <- bc_pareto(omicsData = pmart_amideFilt)
 
 # QUALITY CONTROL METHODS
 # TIGER
-amide_tiger <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
+pmart_amideFilt_abundance <- edata_transform(omicsData = pmart_amideFilt, data_scale = "abundance")
+amide_tiger_abundance <- bc_tiger(omicsData = pmart_amideFilt_abundance,sampletype_cname = "group",
                         test_val = "QC",injection_cname = "Injection_order",group_cname = "group")
+amide_tiger <- edata_transform(omicsData = amide_tiger_abundance, data_scale = "log2")
 
 # QC-RLSC
 amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amideFilt,block_cname = "batch",
@@ -93,7 +98,8 @@ amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amideFilt,block_cname = "batch",
                           missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE,keep_qc = FALSE)
 
 # SERRF
-amide_serrf <- bc_serrf(omicsData = pmart_amideFilt,sampletype_cname = "group",test_val = "QC",group_cname = "group")
+amide_serrf_abundance <- bc_serrf(omicsData = pmart_amideFilt_abundance,sampletype_cname = "group",test_val = "QC",group_cname = "group")
+amide_serrf <- edata_transform(omicsData = amide_serrf_abundance, data_scale = "log2")
 
 # OTHER METHODS
 # ComBat
@@ -103,14 +109,15 @@ amide_combat <- bc_combat(omicsData = pmart_amideFilt, use_groups = FALSE)
 amide_eigen <- bc_eigenMS(omicsData = pmart_amideFilt)
 
 # WaveICA2.0
-amide_wave <- bc_waveica(omicsData = pmart_amideFilt, injection_cname = "Injection_order",
+amide_wave_abundance <- bc_waveica(omicsData = pmart_amideFilt_abundance, injection_cname = "Injection_order",
                          version = "WaveICA2.0", alpha = 0, cutoff_injection = 0.1, K = 10)
+amide_wave <- edata_transform(omicsData = amide_wave_abundance, data_scale = "log2")
+amide_wave$e_data[is.na(amide_wave$e_data)] <- NA
 
 # QC-RFSC
-pmart_amideFilt_abundance <- pmartR::edata_transform(pmart_amideFilt,"abundance")
-amide_qcrfsc <- bc_qcrfsc(omicsData = pmart_amideFilt_abundance,qc_cname = "group",qc_val = "QC",
+amide_qcrfsc_abundance <- bc_qcrfsc(omicsData = pmart_amideFilt_abundance,qc_cname = "group",qc_val = "QC",
                           order_cname = "Injection_order",ntree = 500, keep_qc = FALSE,group_cname = "group")
-amide_qcrfsc <- pmartR::edata_transform(amide_qcrfsc,"log2")
+amide_qcrfsc <- edata_transform(amide_qcrfsc_abundance, data_scale = "log2")
 ```
 
 ### Data Visualization
@@ -129,8 +136,9 @@ p7 <- plot(dim_reduction(omicsData = amide_combat),omicsData = amide_combat,colo
 p8 <- plot(dim_reduction(omicsData = amide_wave),omicsData = amide_wave,color_by = "batch") + labs(title = "Amide: WaveICA2.0")
 p9 <- plot(dim_reduction(omicsData = amide_serrf),omicsData = amide_serrf,color_by = "batch") + labs(title = "Amide: SERRF")
 p10 <- plot(dim_reduction(omicsData = amide_qcrfsc),omicsData = amide_qcrfsc,color_by = "batch") + labs(title = "Amide: QC-RFSC")
+p11 <- plot(dim_reduction(omicsData = amide_eigen),omicsData = amide_eigen,color_by = "batch") + labs(title = "Amide: EigenMS")
 
-p1;p2;p3;p4;p5;p6;p7;p8;p9;p10
+p1;p2;p3;p4;p5;p6;p7;p8;p9;p10;p11
 ```
 
 ## Data Set 2: Mix Data
@@ -158,6 +166,8 @@ As there is no information regarding QC samples or injection order, the other ba
 
 As with the `pmart_amideFilt` data set, is important to note that the data in `pmart_mixFilt` has been filtered and transformed such that the data runs with all possible methods, but it may be conservative for a given method. As there were no missing data with the "mix" data set, no imputation was computed.
 
+The data is currently on a log2 scale, therefore, the data must be converted to abundance values for the following methods: NOMIS and WaveICA.
+
 ```{r, warning = FALSE}
 # SCALING METHODS
 # range scaling
@@ -174,10 +184,17 @@ mix_power <- bc_power(omicsData = pmart_mixFilt)
 mix_ruv <- bc_ruvRandom(omicsData = pmart_mixFilt, nc_cname = "tag",nc_val = "IS", k = 3)
 
 # NOMIS
-mix_nomis <- bc_nomis(omicsData = pmart_mixFilt, is_cname = "tag", is_val = "IS", num_pc = 2)
+pmart_mixFilt_abundance <- edata_transform(omicsData = pmart_mixFilt, data_scale = "abundance")
+mix_nomis_abundance <- bc_nomis(omicsData = pmart_mixFilt_abundance, is_cname = "tag", is_val = "IS", num_pc = 2)
+mix_nomis <- edata_transform(omicsData = mix_nomis_abundance, data_scale = "log2")
 
 # OTHER METHODS
 mix_combat <- bc_combat(omicsData = pmart_mixFilt)
+
+mix_waveica_abundance <- bc_waveica(omicsData = pmart_mixFilt_abundance,batch_cname = "BatchNum",
+                                    version = "WaveICA",alpha = 0, K = 20, cutoff_batch = 0.05, cutoff_group = 0.05)
+mix_waveica <- edata_transform(omicsData = mix_waveica_abundance, data_scale = "log2")
+mix_waveica$e_data[is.na(mix_waveica$e_data)] <- NA
 ```
 
 ### Mix: Data Visualization
@@ -192,8 +209,9 @@ p4 <- plot(dim_reduction(omicsData = mix_combat),omicsData = mix_combat,color_by
 p5 <- plot(dim_reduction(omicsData = mix_range),omicsData = mix_range,color_by = "BatchNum") + labs(title = "Mix: Range")
 p6 <- plot(dim_reduction(omicsData = mix_power),omicsData = mix_power,color_by = "BatchNum") + labs(title = "Mix: Power")
 p7 <- plot(dim_reduction(omicsData = mix_pareto),omicsData = mix_pareto,color_by = "BatchNum") + labs(title = "Mix: Pareto")
+p8 <- plot(dim_reduction(omicsData = mix_waveica),omicsData = mix_waveica,color_by = "BatchNum") + labs(title = "Mix: WaveICA")
 
-p1;p2;p3;p4;p5;p6;p7
+p1;p2;p3;p4;p5;p6;p7;p8
 ```
 
 ## References

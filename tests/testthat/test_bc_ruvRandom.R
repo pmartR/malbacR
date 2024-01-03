@@ -15,9 +15,8 @@ test_that('bc_ruvRandom returns the correct data frame and attributes',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = 'Metabolite',
+                                data_scale = "log2")
   
   # Run through the potential error messages -----------------------------------
   # what if we enter parameters wrong
@@ -39,6 +38,10 @@ test_that('bc_ruvRandom returns the correct data frame and attributes',{
   # if we have missing data ruv-random won't run
   expect_error(bc_ruvRandom(omicsData = mdata,nc_cname = "IS",nc_val = "IS"),
                "RUV-random requires no missing observations.")
+  # data must be log2
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  expect_error(bc_ruvRandom(omicsData = mdata_abundance,nc_cname = "IS",nc_val = "IS"),
+               "RUV-random must be ran with log2 abundance values")
   
   # Check the dimensions of results --------------------------------------------
   # remove the missing values

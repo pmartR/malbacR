@@ -27,7 +27,7 @@ test_that('bc_qcrfsc returns the correct data frame and attributes', {
                          qc_val = "QC.NIST",
                          group_cname = "Age",
                          order_cname = "RunOrderOverall"),
-               "For QCRFSC, omicsData must be ran with the scale 'abundance'")
+               "QC-RFSC must be ran with raw abundance values")
   # so we fix this for future process
   mdata <- pmartR::edata_transform(mdata,"abundance")
   

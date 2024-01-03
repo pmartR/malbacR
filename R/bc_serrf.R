@@ -26,7 +26,7 @@
 #' impObj <- imputation(omicsData = pmart_amide)
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 #' amide_imp_abund <- edata_transform(amide_imp,"abundance")
-#' amide_serrf <- bc_serrf(omicsData = amide_imp_abund,sampletype_cname = "group",test_val = "QC",group_cname = "group")
+#' amide_serrf_abundance <- bc_serrf(omicsData = amide_imp_abund,sampletype_cname = "group",test_val = "QC",group_cname = "group")
 #' 
 #' @author Damon Leach
 #' 
@@ -97,6 +97,11 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   if (is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
     stop (paste("omicsData must have batch_id attribute for batch correction",
                 sep = ' '))
+  }
+  
+  # check that data is on abundance scale
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop ("SERRF must be ran with raw abundance values. Please transform your data to 'abundance'.")
   }
   
   # useful information

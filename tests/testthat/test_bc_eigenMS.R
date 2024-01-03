@@ -15,9 +15,8 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
                               e_meta = emeta,
                               edata_cname = 'Metabolite',
                               fdata_cname = 'SampleID',
-                              emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                              emeta_cname = 'Metabolite',
+                              data_scale = "log2")
   
   # Check for any warning errors -----------------------------------------------
   
@@ -25,15 +24,22 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
   expect_error(bc_eigenMS(mdata),
                "omicsData must have group_designation ran")
   
+  # add in group designation
+  mdata <- pmartR::group_designation(mdata,main_effects = "Age",
+                                     batch_id = "BatchName")
+  
+  # what if data not log2
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  expect_error(bc_eigenMS(mdata_abundance),
+               "EigenMS must be ran with log2 abundance values")
+  
   # Check the dimensions of results --------------------------------------------
   # retain seed after  running code
   if (!exists(".Random.seed")) runif(1)
   old_seed <- .Random.seed
   on.exit(.Random.seed <- old_seed)
   
-  # run the real version
-  mdata <- pmartR::group_designation(mdata,main_effects = "Age",
-                                     batch_id = "BatchName")
+  
   
   # we should now get a warning because we have not applied molecule filter with
   # use_groups = TRUE
