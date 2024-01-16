@@ -11,6 +11,8 @@
 #'  that contains the sample type information (such as quality control samples)
 #' @param test_val character string giving the name of the value within the column sampletype_cname to be used
 #'  as the testing value for SERRF
+#' @param group_cname character string giving the name of the column in omicsData$f_data
+#'  that contians the group information
 #'  
 #' @return Object of same class as omicsData that has been undergone
 #'   SERRF normalization
@@ -21,17 +23,16 @@
 #' data("pmart_amide")
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-#' pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-#'                                apply_norm = TRUE,backtransform = TRUE)
 #' impObj <- imputation(omicsData = pmart_amide)
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-#' amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC")
+#' amide_imp_abund <- edata_transform(amide_imp,"abundance")
+#' amide_serrf_abundance <- bc_serrf(omicsData = amide_imp_abund,sampletype_cname = "group",test_val = "QC",group_cname = "group")
 #' 
 #' @author Damon Leach
 #' 
 #' @export
 #' 
-bc_serrf <- function(omicsData, sampletype_cname, test_val){
+bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   # run through checks ---------------------------------------------------------
   
   # check that omicsData is of appropriate class #
@@ -73,6 +74,19 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
     stop("Input parameter test_val must be a value in sampletype_cname column in omicsData$f_data")
   }
   
+  # group_cname - type of each sample
+  if (class(group_cname) != "character") {
+    stop("Input parameter group_cname must be of class 'character'.")
+  }
+  
+  if (length(group_cname) > 2) {
+    stop("Input parameter group_cname must be of length 1 or 2 (e.g. vector containing a one or two elements")
+  }
+  
+  if (!any(names(omicsData$f_data) == group_cname)) {
+    stop("Input parameter group_cname must be a column found in f_data of omicsData.")
+  }
+  
   # check that omicsData has batch id information
   if (is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
     stop (paste("omicsData must have batch_id attribute for batch correction",
@@ -83,6 +97,11 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   if (is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
     stop (paste("omicsData must have batch_id attribute for batch correction",
                 sep = ' '))
+  }
+  
+  # check that data is on abundance scale
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop ("SERRF must be ran with raw abundance values. Please transform your data to 'abundance'.")
   }
   
   # useful information
@@ -96,19 +115,28 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
     stop ("SERRF requires no missing observations. Remove molecules with missing samples.")
   }
   
+  # we cannot have negative values
+  if(sum(omicsData$e_data < 0,na.rm=TRUE) > 0){
+    stop("SERRF cannot run with expression data that has negative values (likely
+         due to normalization without a backtransform")
+  }
+  
   # run the SERRF calculations -------------------------------------------------
+  # retain seed after  running code
+  if (!exists(".Random.seed")) runif(1)
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
+  
   # set up row names to be the edata
   rownames(omicsData$e_data) <- omicsData$e_data[,edata_cnameCol]
   edata <- omicsData$e_data[,-edata_cnameCol]
   fdata <- omicsData$f_data
   
-  
-  
   # separate the edata based on QC or not QC
   qc_sampNames = fdata[fdata[,sampletype_cname] == test_val,][[fdata_cnameCol]]
   nonqc_sampNames = fdata[fdata[,sampletype_cname] != test_val,][[fdata_cnameCol]]
-  edataQC <- edata %>% dplyr::select(dplyr::all_of(qc_sampNames))
-  edata_noQC <- edata %>% dplyr::select(dplyr::all_of(nonqc_sampNames))
+  edataQC <- edata %>% dplyr::select(-dplyr::all_of(nonqc_sampNames))
+  edata_noQC <- edata %>% dplyr::select(-dplyr::all_of(qc_sampNames))
   
   # now add in fdata information to the data for QC and non QC samples
   edataQC_t <- edataQC %>%
@@ -235,7 +263,15 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
       norm_dat <- matrix(nrow=nrow(tst),ncol=ncol(tst))
       colnames(norm_dat) <- tbl_colnames
       
-      doParallel::registerDoParallel(parallel::detectCores()-1)
+      # set up parallel computing
+      cl <- parallel::makeCluster(parallel::detectCores()-1)
+      on.exit(parallel::stopCluster(cl))
+      doParallel::registerDoParallel(cl)
+      parallel::clusterExport(cl,
+                              c("batch_info", "batchName", "corrs_train",
+                                "corrs_target", "training_dat", "testing_dat"),
+                              envir = environment())
+      
       # for each molecule normalize the data
       nd <- foreach::foreach(i = 1:ncol(norm_dat),.combine = cbind) %dopar% {
         # find what variables we are working with num_cor
@@ -295,6 +331,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
         predictor_vars = paste0("var",seq(from = 1, to = length(colnames(norm_dat)[sel_var]),by = 1))
         colnames(train_data) = c("y",predictor_vars)
         colnames(test_data) = predictor_vars
+        set.seed(1)
         model = ranger::ranger(y ~ ., data = train_data)
         
         # begin adjusting the normalized values
@@ -312,7 +349,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
         all_data_var_num_nq = which(colnames(training_dat) == colnames(trn)[i])
         abund_val_nq_median = median(testing_dat[,all_data_var_num_nq],na.rm=T)
         
-        # now calculate serff adjsuted values
+        # now calculate serff adjusted values
         norm_vals_bqc = abund_val_bqc/((pred_bqc + abund_val_bqc_mean)/abund_val_qc_median)
         norm_vals_bnq = abund_val_bnq/((pred_bnq + abund_val_bnq_mean)/abund_val_nq_median)
         serrf_bqc = norm_vals_bqc/(median(norm_vals_bqc,na.rm=T)/abund_val_qc_median)
@@ -321,7 +358,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
         norm_dat[,trn_current_var_col] <- serrf_bnq
       }
       
-      # now make it a datframe and add back in rownname information
+      # now make it a dataframe and add back in rownname information
       norm_dat <- data.frame(nd)
       colnames(norm_dat) = colnames(tst)
       rownames(norm_dat) <- rownames(tst)
@@ -330,6 +367,11 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
   
   # combine all the different batch normalizations together
   all_dat <- do.call("rbind", dat_nest$norm_data)
+  for(i in 1:nrow(all_dat)){
+    all_dat[i,is.na(all_dat[i,])] = rnorm(sum(is.na(all_dat[i,])), mean = min(all_dat[i,!is.na(all_dat[i,])], na.rm = TRUE), sd = sd(all_dat[i,!is.na(all_dat[i,])])*0.1)
+    all_dat[i,all_dat[i,]<0] = runif(1) * min(all_dat[i,all_dat[i,]>0], na.rm = TRUE)
+  }
+
   # put back into molecule x sample order
   edata_serrf <- all_dat %>%
     t() %>%
@@ -341,7 +383,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
     dplyr::select(-dplyr::all_of(qc_sampNames))
   og_edata_ordering <- colnames(og_edata)
   edata_serrf <- edata_serrf %>% dplyr::select(dplyr::all_of(og_edata_ordering))
-  edata_serrf[,edata_cname] <- edata_serrf[order(edata_serrf[,edata_cname],omicsData$e_data[,edata_cname]),][[edata_cname]]
+  edata_serrf[,edata_cname] <- edata_serrf[match(edata_serrf[,edata_cname],omicsData$e_data[,edata_cname]),][[edata_cname]]
   
   # filter out the old QC samples
   fdata_serrf <- fdata[fdata[,sampletype_cname] != test_val,]
@@ -405,7 +447,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
                                   e_meta = emet,
                                   emeta_cname = emeta_cname)
   }
-  
+
   # Update the data_info attribute.
   attr(pmartObj, 'data_info') <- pmartR:::set_data_info(
     e_data = pmartObj$e_data,
@@ -419,15 +461,32 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val){
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
   
-  # Add the group information to the group_DF attribute in the omicsData object.
-  attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
+  # check group designation
+  # since we are removing samples if keep_qc != TRUE
+  if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
+    batch_id_col = which(colnames(attributes(attr(omicsData,"group_DF"))$batch_id) != fdata_cname)
+    batch_id_name = colnames(attributes(attr(omicsData,"group_DF"))$batch_id)[batch_id_col]
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname,
+                                          batch_id = batch_id_name)
+  } else {
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname)
+  }
   
   # Update the data_info attribute.
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "serrf",
-    params = list()
+    bc_method = "bc_serrf",
+    params = list(sampletype_cname = sampletype_cname,
+                  test_val = test_val,
+                  group_cname = group_cname)
   )
+
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_serrf"
+  )
+  
   
   # Update the meta_info attribute.
   attr(pmartObj, 'meta_info') <- pmartR:::set_meta_info(

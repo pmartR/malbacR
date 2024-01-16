@@ -11,6 +11,8 @@
 #'  that contains the sample type information (such as quality control samples)
 #' @param test_val character string giving the name of the value within the column sampletype_cname to be used
 #'  as the testing value for TIGER
+#' @param group_cname character string giving the name of the column in omicsData$f_data
+#'  that contians the group information
 #' @param position_cname character string giving the name of the column in omicsData$f_data that
 #'  contains the well position, default is NULL
 #' @param injection_cname character string giving the name of the column in omicsData$f_data that
@@ -23,20 +25,17 @@
 #' library(malbacR)
 #' library(pmartR)
 #' data("pmart_amide")
-#' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-#' pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-#'                                apply_norm = TRUE,backtransform = TRUE)
 #' tigerFilt <- tiger_filter(pmart_amide,sampletype_cname = "group",test_val = "QC")
 #' pmart_amideFilt <- apply_tigerFilt(tigerFilt,pmart_amide)
 #' amide_tiger <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
-#'                         test_val = "QC",injection_cname = "Injection_order")
+#'                         test_val = "QC",injection_cname = "Injection_order",group_cname = "group")
 #' 
 #' @author Damon Leach
 #' 
 #' @export
 #' 
-bc_tiger <- function(omicsData, sampletype_cname,test_val,position_cname = NULL,injection_cname = NULL){
+bc_tiger <- function(omicsData, sampletype_cname,test_val,group_cname,position_cname = NULL,injection_cname = NULL){
   
   # run through checks ---------------------------------------------------------
   
@@ -53,6 +52,11 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,position_cname = NULL,
   if (is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
     stop (paste("omicsData must have batch_id attribute for batch correction",
                 sep = ' '))
+  }
+  
+  # check that data is on abundance scale
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop ("TIGER must be ran with raw abundance values. Please transform your data to 'abundance'.")
   }
   
   # sampletype_cname - type of each sample
@@ -77,6 +81,19 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,position_cname = NULL,
   }
   if (!test_val %in% omicsData$f_data[,sampletype_cname]){
     stop("Input parameter test_val must be a value in sampletype_cname column in omicsData$f_data")
+  }
+  
+  # group_cname - type of each sample
+  if (class(group_cname) != "character") {
+    stop("Input parameter group_cname must be of class 'character'.")
+  }
+  
+  if (length(group_cname) > 2) {
+    stop("Input parameter group_cname must be of length 1 or 2 (e.g. vector containing a one or two elements")
+  }
+  
+  if (!any(names(omicsData$f_data) == group_cname)) {
+    stop("Input parameter group_cname must be a column found in f_data of omicsData.")
   }
   
   # injection_cname - injection order or temporal information of each sample
@@ -114,6 +131,11 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,position_cname = NULL,
     }
   }
   
+  # check that data is on abundance scale
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop ("SERRF must be ran with raw abundance values. Please transform your data to 'abundance'.")
+  }
+  
   # useful information
   edata_cname <- pmartR::get_edata_cname(omicsData)
   fdata_cname <- pmartR::get_fdata_cname(omicsData)
@@ -127,6 +149,10 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,position_cname = NULL,
   # }
   
   # run the TIGER calculations -------------------------------------------------
+  # retain seed after  running code
+  if (!exists(".Random.seed")) runif(1)
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
   
   # make sure we are aligning fdata and edata correctly
   fdata_sampleID_ordering <- omicsData$f_data[fdata_cnameCol]
@@ -180,7 +206,7 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,position_cname = NULL,
   # set seed
   set.seed(1)
   # include injection order and well position into feature set:
-  udnTIGER <- TIGERr::run_TIGER(test_samples = test_samples,
+  udnTIGER <- run_TIGER_internal(test_samples = test_samples,
                         train_samples = train_samples,
                         col_sampleID  = fdata_cname,     # input column name
                         col_sampleType = sampletype_cname,  # input column name
@@ -285,14 +311,32 @@ bc_tiger <- function(omicsData, sampletype_cname,test_val,position_cname = NULL,
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
   
-  # Add the group information to the group_DF attribute in the omicsData object.
-  attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
+  # check group designation
+  # since we are removing samples if keep_qc != TRUE
+  if(!is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
+    batch_id_col = which(colnames(attributes(attr(omicsData,"group_DF"))$batch_id) != fdata_cname)
+    batch_id_name = colnames(attributes(attr(omicsData,"group_DF"))$batch_id)[batch_id_col]
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname,
+                                          batch_id = batch_id_name)
+  } else {
+    pmartObj <- pmartR::group_designation(pmartObj,main_effects = group_cname)
+  }
   
   # Update the data_info attribute.
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "tiger",
-    params = list()
+    bc_method = "bc_tiger",
+    params = list(sampletype_cname = sampletype_cname,
+                  test_val = test_val,
+                  group_cname = group_cname,
+                  position_cname = position_cname,
+                  injection_cname = injection_cname)
+  )
+
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_tiger"
   )
   
   # Update the meta_info attribute.

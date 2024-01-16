@@ -17,8 +17,6 @@
 #' data("pmart_amide")
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-#' pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-#'                                apply_norm = TRUE,backtransform = TRUE)
 #' amide_power <- bc_power(omicsData = pmart_amide)
 #' 
 #' @author Damon Leach
@@ -38,22 +36,25 @@ bc_power <- function(omicsData) {
                 sep = ' '))
   }
   
-  # check that if normalized we do not have non-backtransformed data
-  if(attr(omicsData,"data_info")$norm_info$is_normalized){
-    if(is.null(attr(omicsData,"data_info")$norm_info$params$bt_location)){
-      stop (paste("omicsData must be backtransformed if normalized when using power scaling so as 
-                  to avoid having negative values in the e_data"))
-    }
+  edat <- omicsData$e_data
+  edat_cname = pmartR::get_edata_cname(omicsData)
+  # we cannot have negative values
+  if(sum(edat[,-which(colnames(edat) == edat_cname)] < 0,na.rm=TRUE) > 0){
+    stop("Power scaling cannot run with expression data that has negative values (likely
+         due to normalization without a backtransform")
+  }
+  
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("Power Scaling must be ran with log2 abundance values. Please transform your data to 'log2'.")
   }
 
   # important info for compiling pmart object later ----------------------------
   # find the individual data sets 
-  edat <- omicsData$e_data
   fdat <- omicsData$f_data
   emet <- omicsData$e_meta
   
   # get the variables we need to create pmart object
-  edat_cname = pmartR::get_edata_cname(omicsData)
   fdat_cname = pmartR::get_fdata_cname(omicsData)
   emet_cname = pmartR::get_emeta_cname(omicsData)
   
@@ -64,14 +65,15 @@ bc_power <- function(omicsData) {
   
   # power scaling calculation
   edatScaled <- edat %>%
-    dplyr::select(-cname) %>%
-    scale_method(methods = "power")
+    dplyr::select(-dplyr::all_of(cname)) %>%
+    scale_method(methods = "power") %>%
+    t()
 
   # create pmart object --------------------------------------------------------
   
   # format the edata
   edatScaled <- edat %>%
-    dplyr::select(cname) %>%
+    dplyr::select(dplyr::all_of(cname)) %>%
     cbind(edatScaled)
   
   # create the pmart object #
@@ -140,11 +142,16 @@ bc_power <- function(omicsData) {
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
   
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "power_scaling",
+    bc_method = "bc_power",
     params = list()
+  )
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_power"
   )
   
   # Update the meta_info attribute.

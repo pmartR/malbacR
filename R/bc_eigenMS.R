@@ -17,8 +17,6 @@
 #' data("pmart_amide")
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-#' pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-#'                                apply_norm = TRUE,backtransform = TRUE)
 #' amide_eigen <- bc_eigenMS(omicsData = pmart_amide)
 #' 
 #' @author Damon Leach
@@ -44,7 +42,17 @@ bc_eigenMS <- function(omicsData){
                 sep = ' '))
   }
   
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("EigenMS must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
+  
   # find the eigenMS values ----------------------------------------------------
+  # retain seed after  running code
+  if (!exists(".Random.seed")) runif(1)
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
+  
   # set up the m parameter (the e_data)
   cnameCol = which(colnames(omicsData$e_data) == pmartR::get_edata_cname(omicsData))
   orig_edat_rows = omicsData$e_data[,cnameCol]
@@ -79,21 +87,7 @@ bc_eigenMS <- function(omicsData){
     stop("omicsData must have molecule filter applied with use_groups = TRUE and min_num = 1")
   }
   
-  # set up the prot.info parameter
-  # use emeta data or create a meta data frame if there is none
-  if(!is.null(omicsData$e_meta)) {
-    meta = omicsData$e_meta
-    # need to know if the edata and emeta are in the same order
-    emeta_cname = pmartR::get_emeta_cname(omicsData)
-    emeta_cname_num = which(colnames(omicsData$e_meta)== pmartR::get_emeta_cname(omicsData))
-    edat_emet_ordering = match(meta[,emeta_cname_num],orig_edat_rows)
-    meta = meta[edat_emet_ordering,]
-    meta <- meta %>%
-      dplyr::relocate(dplyr::all_of(emeta_cname))
-      
-  } else {
-    meta = data.frame(omicsData$e_data[,cnameCol])
-  }
+  meta = data.frame(omicsData$e_data[,cnameCol])
   
   # we need to set a seed so results remain constant each time we run it
   set.seed(12345)
@@ -124,15 +118,8 @@ bc_eigenMS <- function(omicsData){
   # need to update emeta if the data since we may have removed samples in the process
   # that do not have enough molecules
   if(!is.null(omicsData$e_meta)){
-    emet = eigen_ms$normalized[,colnames(eigen_ms$normalized) %in% colnames(omicsData$e_meta)]
-    rownames(emet) = NULL
+    emet = omicsData$e_meta
     emet_cname = pmartR::get_emeta_cname(omicsData)
-    emeta_cname_num = which(colnames(omicsData$e_meta)== pmartR::get_emeta_cname(omicsData))
-    nrow_emet = nrow(emet)
-    # put back in the right order
-    emet = emet[rank(match(emet[,emet_cname],omicsData$e_meta[,emet_cname])),]
-    emet <- emet %>%
-      dplyr::select(dplyr::all_of(colnames(omicsData$e_meta)))
   }
   
   # create the pmart object #
@@ -201,13 +188,17 @@ bc_eigenMS <- function(omicsData){
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
   
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "eigenMS",
+    bc_method = "bc_eigenMS",
     params = list()
   )
-  
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_eigenMS"
+  )
   # Update the meta_info attribute.
   attr(pmartObj, 'meta_info') <- pmartR:::set_meta_info(
     e_meta = omicsData$e_meta,

@@ -23,6 +23,8 @@
 #'   the data to put the normalized data back on the same scale as the original
 #'   data. Defaults to FALSE. If TRUE, the median of the y-values of the loess
 #'   curve is added to the normalized value for each biomolecule for each batch
+#' @param keep_qc logical value to determine whether or not to include QC samples in the final output
+#' of the data (default is set to FALSE)
 #'
 #' @author Damon Leach
 #' 
@@ -35,22 +37,26 @@
 #' data("pmart_amide")
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-#' pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-#'                                apply_norm = TRUE,backtransform = TRUE)
 #' amide_qcrlsc <- bc_qcrlsc(omicsData = pmart_amide,block_cname = "batch",
 #'                           qc_cname = "group", qc_val = "QC", order_cname = "Injection_order",
-#'                           missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)}
+#'                           missing_thresh = 0.5, rsd_thresh = 0.3, backtransform  = FALSE)
+#' }
 #'  
 #' @export
 bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
                    order_cname,missing_thresh = 0.5,rsd_thresh = 0.3,
-                   backtransform = FALSE) {
+                   backtransform = FALSE,keep_qc = FALSE) {
   
   # run a plethora of checks for this to run -----------------------------------
   if (!class(omicsData) %in% c("metabData", "lipidData", "pepData", "proData")) {
     stop(
       "omicsData must be an S3 object of class 'metabData', 'lipidData', 'pepData', 'proData', or 'nmrData'. See pmartR package for more details."
     )
+  }
+  
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("QC-RLSC must be ran with log2 abundance values. Please transform your data to 'log2'.")
   }
   
   # check that input parameters that should be character strings are indeed character strings, and each is a vector of length 1#
@@ -71,7 +77,6 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
   }
   
   # values in block_cname need to be numeric for this to run I believe
-  
   if (length(qc_cname) != 1) {
     stop(
       "Input parameter qc_cname must be of length 1 (e.g. vector containing a single element)."
@@ -114,6 +119,16 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
     stop(
       "Values in order_cname column (in f_data component of omicsData) must be numeric"
     )
+  }
+  
+  # check that value in keep_qc is logical
+  if (!is.logical(keep_qc)) {
+    stop("Input parameter keep_qc must be logical (either TRUE or FALSE)")
+  }
+  
+  # check that value in keep_qc is length 1
+  if (length(keep_qc) != 1) {
+    stop("Input parameter qc_val must be of length 1 (e.g. vector containing a single element).")
   }
   
   # check that backtransform is logical #
@@ -165,6 +180,17 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
   # split the f_data by batch
   batch_tib <- tibble::tibble(batchDat = split(omicsData$f_data,omicsData$f_data[,block_cname]))
   
+  # find if we only have one QC total in a batch
+  batch_tib <- batch_tib %>%
+    dplyr::mutate(numQC = purrr::map(batchDat,function(bd){
+      qc_colNum = which(colnames(bd) == qc_cname)
+      qcLength = length(which(bd[,qc_colNum] == qc_val))
+    }))
+  numQC_perBatch = unlist(batch_tib$numQC)
+  if(min(numQC_perBatch,na.rm=T) < 2) {
+    stop ("Each batch must have at minimum 2 QC samples (the first and last sample run for each batch must be a QC sample)")
+  }
+  
   # now we calculate the number of non NA values from filt_qc_data1
   batch_tib <- batch_tib %>%
     dplyr::mutate(
@@ -180,8 +206,9 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
       }),
       calc = purrr::map(qcEdata,function(edat){
         num_not_NA = rowSums(!is.na(edat))
-        too_few_data = sum(num_not_NA < 6)
-        return(too_few_data)
+        whichBad = which(num_not_NA < 6)
+        badMolecules = omicsData$e_data[whichBad,][[pmartR::get_edata_cname(omicsData)]]
+        return(badMolecules)
       }),
       begin_end_QC = purrr::map(batchDat,function(bd){
         begin_end_QC = purrr::map(batchDat,function(bd){
@@ -192,14 +219,21 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
       }))
   
   # see if we have any samples with too many samples still
-  total_bad = sum(unlist(batch_tib$calc,use.names = FALSE))
-  if(total_bad > 0){
-    stop("There are too few QC data points that are not NA in at least one sample-batch combination")
+  badMolecules = unique(unlist(batch_tib$calc,use.names = FALSE))
+  if(length(badMolecules) > 0){
+    stop(c(paste0("The following molecules have too few non-missing QC data points in at least one sample-batch \n combination. Please remove them prior to running bc_qcrlsc: ",'\n'),
+           paste0(' - ', badMolecules,'\n')))
   }
 
   start_end_qc = sum(unlist(batch_tib$begin_end_QC) != qc_val)
   if(start_end_qc > 0){
     stop("The first and last sample run for each batch must be a QC sample")
+  }
+  
+  # we cannot have values that equal 0
+  if(any(!is.na(data) & data == 0)){
+    stop("QC-RLSC cannot run on data that has been normalized without
+         backtransforming the data.")
   }
   
   # begin the calculations -----------------------------------------------------
@@ -221,7 +255,8 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
                    block_cname = block_cname,
                    qc_cname = qc_cname,
                    qc_ind = qc_val,
-                   backtransform = backtransform))
+                   backtransform = backtransform,
+                   keep_qc = keep_qc))
   
   # reorder the data as it may have shifted around
   # find the original data order
@@ -232,10 +267,12 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
   pmartObj$e_data <- pmartObj$e_data[,proper_order]
   
   # update the batch column back
-  qc_samples <- which(omicsData$f_data[,qc_cname] == qc_val)
-  original_batch_names <- original_batch_names[-qc_samples]
-  pmartObj$f_data[,block_cname] <- original_batch_names
-
+  if(keep_qc == FALSE){
+    qc_samples <- which(omicsData$f_data[,qc_cname] == qc_val)
+    original_batch_names <- original_batch_names[-qc_samples]
+    pmartObj$f_data[,block_cname] <- original_batch_names
+  }
+  
   # pmart object creation time --------------------------------------------------
 
   # Update the data_info attribute.
@@ -251,14 +288,24 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
     is_bc = pmartR::get_data_info(omicsData)$batch_info$is_bc
   )
   
-  # Add the group information to the group_DF attribute in the omicsData object.
-  attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
-  
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "qcrlsc_scaling",
-    params = list()
+    bc_method = "bc_qcrlsc",
+    params = list(block_cname = block_cname,
+                  qc_cname = qc_cname,
+                  qc_val = qc_val,
+                  order_cname = order_cname,
+                  missing_thresh = missing_thresh,
+                  rsd_thresh = rsd_thresh,
+                  backtransform = backtransform,
+                  keep_qc = keep_qc)
+  )
+  
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_qcrlsc"
   )
   
   # return pmart object

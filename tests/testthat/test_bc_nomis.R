@@ -15,9 +15,8 @@ test_that('bc_nomis returns the correct data frame and attributes',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = 'Metabolite',
+                                data_scale = 'log2')
 
   # Run through the potential error messages -----------------------------------
   
@@ -26,6 +25,13 @@ test_that('bc_nomis returns the correct data frame and attributes',{
                "omicsData must have batch_id")
   # so we add batch information
   udn_batched <- pmartR::group_designation(mdata,main_effects = "Age",batch_id = "BatchName")
+  
+  # cannot be ran on log2 scale
+  expect_error(bc_nomis(omicsData = udn_batched,is_cname = "IS",is_val = "IS"),
+               "NOMIS must be ran with raw abundance values")
+  
+  # convert to abundance
+  udn_batched <- pmartR::edata_transform(udn_batched,"abundance")
   
   # what if we enter parameters wrong
   # give is_cname two columns
@@ -82,8 +88,9 @@ test_that('bc_nomis returns the correct data frame and attributes',{
   expect_equal(attr(udn_complete,"cnames"),attr(udn_nomis,"cnames"))
   # check data info except for batch info
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:3],
-               attributes(udn_nomis)$data_info[1:3])
+  expect_equal(attributes(udn_batched)$data_info[1:2],
+               attributes(udn_nomis)$data_info[1:2])
+  expect_equal(attributes(udn_nomis)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_nomis,"data_info")$num_edata, nrow(udn_nomis$e_data))
   expect_equal(attr(udn_nomis,"data_info")$num_miss_obs, sum(is.na(udn_nomis$e_data)))
   expect_equal(attr(udn_nomis,"data_info")$prop_missing, sum(is.na(udn_nomis$e_data))/(nrow(udn_nomis$e_data)*(ncol(udn_nomis$e_data)-1)))
@@ -100,5 +107,7 @@ test_that('bc_nomis returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(udn_nomis)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "nomis", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_nomis", params = list(is_cname = "IS",
+                                                                           is_val = "IS",
+                                                                           num_pc = 2)))
 })

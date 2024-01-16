@@ -15,9 +15,8 @@ test_that('bc_ruvRandom returns the correct data frame and attributes',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = 'Metabolite',
+                                data_scale = "log2")
   
   # Run through the potential error messages -----------------------------------
   # what if we enter parameters wrong
@@ -39,6 +38,10 @@ test_that('bc_ruvRandom returns the correct data frame and attributes',{
   # if we have missing data ruv-random won't run
   expect_error(bc_ruvRandom(omicsData = mdata,nc_cname = "IS",nc_val = "IS"),
                "RUV-random requires no missing observations.")
+  # data must be log2
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  expect_error(bc_ruvRandom(omicsData = mdata_abundance,nc_cname = "IS",nc_val = "IS"),
+               "RUV-random must be ran with log2 abundance values")
   
   # Check the dimensions of results --------------------------------------------
   # remove the missing values
@@ -70,8 +73,9 @@ test_that('bc_ruvRandom returns the correct data frame and attributes',{
   expect_equal(attr(udn_complete,"cnames"),attr(udn_ruv,"cnames"))
   # check data info except for batch info
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:3],
-               attributes(udn_ruv)$data_info[1:3])
+  expect_equal(attributes(mdata)$data_info[1:2],
+               attributes(udn_ruv)$data_info[1:2])
+  expect_equal(attributes(udn_ruv)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_ruv,"data_info")$num_edata, nrow(udn_ruv$e_data))
   expect_equal(attr(udn_ruv,"data_info")$num_miss_obs, sum(is.na(udn_ruv$e_data)))
   expect_equal(attr(udn_ruv,"data_info")$prop_missing, sum(is.na(udn_ruv$e_data))/(nrow(udn_ruv$e_data)*(ncol(udn_ruv$e_data)-1)))
@@ -88,5 +92,7 @@ test_that('bc_ruvRandom returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(udn_ruv)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "ruv_random", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_ruvRandom", params = list(nc_cname = "IS",
+                                                                               nc_val = "IS",
+                                                                               k = 3)))
 })

@@ -16,9 +16,16 @@ test_that('bc_power returns the correct data frame and attributes',{
                               e_meta = emeta,
                               edata_cname = 'Metabolite',
                               fdata_cname = 'SampleID',
-                              emeta_cname = 'Metabolite')
+                              emeta_cname = 'Metabolite',
+                              data_scale = "log2")
   
   # Check the dimensions of results --------------------------------------------
+  # what if data was in abundance
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  expect_error(bc_power(mdata_abundance),
+               "Power Scaling must be ran with log2 abundance values")
+  
+  # run with log2 data
   mdata_scaled <- bc_power(mdata)
   
   # Investigate the e_data, f_data, and e_meta data frames.
@@ -37,8 +44,9 @@ test_that('bc_power returns the correct data frame and attributes',{
   expect_equal(attr(mdata,"cnames"),attr(mdata_scaled,"cnames"))
   # check data info
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:3],
-               attributes(mdata_scaled)$data_info[1:3])
+  expect_equal(attributes(mdata)$data_info[1:2],
+               attributes(mdata_scaled)$data_info[1:2])
+  expect_equal(attributes(mdata_scaled)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(mdata_scaled,"data_info")$num_edata, nrow(mdata_scaled$e_data))
   expect_equal(attr(mdata_scaled,"data_info")$num_miss_obs, sum(is.na(mdata_scaled$e_data)))
   expect_equal(attr(mdata_scaled,"data_info")$prop_missing, sum(is.na(mdata_scaled$e_data))/(nrow(mdata_scaled$e_data)*(ncol(mdata_scaled$e_data)-1)))
@@ -55,6 +63,6 @@ test_that('bc_power returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(mdata_scaled)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "power_scaling", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_power", params = list()))
 })
 

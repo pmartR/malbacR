@@ -24,15 +24,13 @@ test_that('imputation function to impute the data as expected',{
   # need to remove molecules that have all NA values
   expect_error(imputation(mdata),
                "At least one row has all NA values")
-  
-  # object must be an omicsData
-  expect_error(imputation(mdataFilt$e_data),
-               "omicsData must be of class 'pepData', 'proData', 'metabData', 'lipidData'")
-  
   # so we remove those values
   molfilt <- pmartR::molecule_filter(mdata)
   mdataFilt <- pmartR::applyFilt(molfilt,mdata)
   
+  # object must be an omicsData
+  expect_error(imputation(mdataFilt$e_data),
+               "omicsData must be of class 'pepData', 'proData', 'metabData', 'lipidData'")
   
   # Get the imputation object --------------------------------------------------
   # run the function

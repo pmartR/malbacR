@@ -36,8 +36,6 @@ library(pmartR)
 data("pmart_mix")
 pmart_mix <- edata_transform(pmart_mix,"log2")
 pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum",batch_id = "BatchNum")
-pmart_mix <- normalize_global(pmart_mix,subset_fn = "all",norm_fn = "median",
-                              apply_norm = TRUE,backtransform = TRUE)
 mix_ruv <- bc_ruvRandom(omicsData = pmart_mix, nc_cname = "tag",nc_val = "IS", k = 3)
 
 }

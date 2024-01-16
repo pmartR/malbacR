@@ -22,11 +22,8 @@
 #' library(malbacR)
 #' library(pmartR)
 #' data("pmart_mix")
-#' pmart_mix <- edata_transform(pmart_mix,"log2")
 #' pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum",batch_id = "BatchNum")
-#' pmart_mix <- normalize_global(pmart_mix,subset_fn = "all",norm_fn = "median",
-#'                               apply_norm = TRUE,backtransform = TRUE)
-#' mix_nomis <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", num_pc = 2)
+#' mix_nomis_abundance <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", num_pc = 2)
 #' 
 #' @author Damon Leach
 #' 
@@ -49,6 +46,11 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   if (is.null(attributes(attr(omicsData,"group_DF"))$batch_id)){
     stop (paste("omicsData must have batch_id attribute for batch correction",
                 sep = ' '))
+  }
+  
+  # check that data is on abundance scale
+  if(attributes(omicsData)$data_info$data_scale != "abundance"){
+    stop ("NOMIS must be ran with raw abundance values. Please transform your data to 'abundance'.")
   }
   
   # is_cname
@@ -91,13 +93,21 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
     stop ("NOMIS requires no missing observations. Remove molecules with missing samples.")
   }
   
+  # we cannot have negative values
+  if(sum(omicsData$e_data[,-cnameCol] < 0,na.rm=TRUE) > 0){
+    stop("NOMIS cannot run with expression data that has negative values (likely
+         due to normalization without a backtransform")
+  }
+  
   # run the nomis calculations -------------------------------------------------
   
   # find the values needed for the normalize function
   # set up the object parameter (the e_data)
-  edat <- as.matrix(omicsData$e_data[,-1])
-  rownames(edat) <- omicsData$e_data[,1]
+  edat <- as.matrix(omicsData$e_data[,-cnameCol])
+  rownames(edat) <- omicsData$e_data[,cnameCol]
   rowNamEdat = rownames(edat)
+  # if a value = 1, add a small amount to not break function
+  edat[edat == 0] = 0.00000000001
 
   # set up the factors parameter which is model.matrix with batch information
   # obain batch information
@@ -141,7 +151,8 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   
   # find the important values for pmart creation
   edat_cname = pmartR::get_edata_cname(omicsData)
-  fdat = omicsData$f_data[omicsData$f_data$SampleID %in% colnames(edatNomis),]
+  fdata_cname = pmartR::get_fdata_cname(omicsData)
+  fdat = omicsData$f_data[omicsData$f_data[[fdata_cname]] %in% colnames(edatNomis),]
   fdat_cname = pmartR::get_fdata_cname(omicsData)
   
   # assume emeta is NULL unless otherwise stated
@@ -221,11 +232,19 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
   
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "nomis",
-    params = list()
+    bc_method = "bc_nomis",
+    params = list(is_cname = is_cname,
+                  is_val = is_val,
+                  num_pc = num_pc)
+  )
+
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_nomis"
   )
   
   # Update the meta_info attribute.

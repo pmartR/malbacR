@@ -4,7 +4,7 @@
 \alias{bc_serrf}
 \title{SERRF batch correction}
 \usage{
-bc_serrf(omicsData, sampletype_cname, test_val)
+bc_serrf(omicsData, sampletype_cname, test_val, group_cname)
 }
 \arguments{
 \item{omicsData}{an object of the class 'pepData', 'proData', 'metabData',
@@ -17,6 +17,9 @@ that contains the sample type information (such as quality control samples)}
 
 \item{test_val}{character string giving the name of the value within the column sampletype_cname to be used
 as the testing value for SERRF}
+
+\item{group_cname}{character string giving the name of the column in omicsData$f_data
+that contians the group information}
 }
 \value{
 Object of same class as omicsData that has been undergone
@@ -32,11 +35,10 @@ library(pmartR)
 data("pmart_amide")
 pmart_amide <- edata_transform(pmart_amide,"log2")
 pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-                               apply_norm = TRUE,backtransform = TRUE)
 impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
-amide_serrf <- bc_serrf(omicsData = amide_imp,sampletype_cname = "group",test_val = "QC")
+amide_imp_abund <- edata_transform(amide_imp,"abundance")
+amide_serrf_abundance <- bc_serrf(omicsData = amide_imp_abund,sampletype_cname = "group",test_val = "QC",group_cname = "group")
 
 }
 \author{

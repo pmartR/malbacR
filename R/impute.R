@@ -12,6 +12,8 @@
 #' @examples
 #' library(malbacR)
 #' data("pmart_amide")
+#' library(pmartR)
+#' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' impFilt <- imputation(pmart_amide)
 #' 
 #' @author Evan Martin, Damon Leach
@@ -49,6 +51,11 @@ imputation <- function (omicsData) {
   # make sure we actual have missing values
   if(sum(is.na(omicsData$e_data[,-id_col])) == 0){
     stop ("There are no missing values in this dataset. Imputation is not necessary.")
+  }
+  
+  # recommend running imputation on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("Data must be on log2 scale to imputed. Please transform your data.")
   }
   
   # tranpose the data to be molecules as columns and rows are samples
@@ -96,6 +103,8 @@ imputation <- function (omicsData) {
 #' @examples
 #' library(malbacR)
 #' data("pmart_amide")
+#' library(pmartR)
+#' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' impFilt <- imputation(pmart_amide)
 #' imputed_data <- apply_imputation(impFilt,pmart_amide)
 #' 

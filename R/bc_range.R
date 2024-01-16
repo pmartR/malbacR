@@ -17,8 +17,6 @@
 #' data("pmart_amide")
 #' pmart_amide <- edata_transform(pmart_amide,"log2")
 #' pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-#' pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-#'                                apply_norm = TRUE,backtransform = TRUE)
 #' amide_range <- bc_range(omicsData = pmart_amide)
 #' 
 #' @author Damon Leach
@@ -48,6 +46,11 @@ bc_range <- function(omicsData) {
     stop (paste("Range Scaling requires that each biomolecule be present in at least 2 samples"))
   }
   
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("Range Scaling must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
+  
   # important info for compiling pmart object later ----------------------------
   # find the individual data sets
   edat <- omicsData$e_data
@@ -65,14 +68,15 @@ bc_range <- function(omicsData) {
   
   # range scaling calculation
   edatScaled <- edat %>%
-    dplyr::select(-cname) %>%
-    scale_method(methods = "range")
+    dplyr::select(-dplyr::all_of(cname)) %>%
+    scale_method(methods = "range") %>%
+    t()
   
   # create pmart object --------------------------------------------------------
   
   # add back in edata_cname to edata
   edatScaled <- edat %>%
-    dplyr::select(cname) %>%
+    dplyr::select(dplyr::all_of(cname)) %>%
     cbind(edatScaled)
   
   # create the pmart object #
@@ -141,11 +145,16 @@ bc_range <- function(omicsData) {
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
   
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "range_scaling",
+    bc_method = "bc_range",
     params = list()
+  )
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_range"
   )
   
   # Update the meta_info attribute.

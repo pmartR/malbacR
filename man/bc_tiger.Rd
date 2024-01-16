@@ -8,6 +8,7 @@ bc_tiger(
   omicsData,
   sampletype_cname,
   test_val,
+  group_cname,
   position_cname = NULL,
   injection_cname = NULL
 )
@@ -23,6 +24,9 @@ that contains the sample type information (such as quality control samples)}
 
 \item{test_val}{character string giving the name of the value within the column sampletype_cname to be used
 as the testing value for TIGER}
+
+\item{group_cname}{character string giving the name of the column in omicsData$f_data
+that contians the group information}
 
 \item{position_cname}{character string giving the name of the column in omicsData$f_data that
 contains the well position, default is NULL}
@@ -42,14 +46,11 @@ This function returns a pmart object that has been undergone TIGER
 library(malbacR)
 library(pmartR)
 data("pmart_amide")
-pmart_amide <- edata_transform(pmart_amide,"log2")
 pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
-pmart_amide <- normalize_global(pmart_amide,subset_fn = "all",norm_fn = "median",
-                               apply_norm = TRUE,backtransform = TRUE)
 tigerFilt <- tiger_filter(pmart_amide,sampletype_cname = "group",test_val = "QC")
 pmart_amideFilt <- apply_tigerFilt(tigerFilt,pmart_amide)
 amide_tiger <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
-                        test_val = "QC",injection_cname = "Injection_order")
+                        test_val = "QC",injection_cname = "Injection_order",group_cname = "group")
 
 }
 \author{

@@ -15,9 +15,8 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = "Metabolite")
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                                emeta_cname = "Metabolite",
+                                data_scale = "log2")
   
   # Run through the different warnings! ----------------------------------------
   # block_cname needs to be a column in the fdata
@@ -68,13 +67,39 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
                          order_cname = "BatchName"),
                "Values in order_cname column")
   
+  # keep_qc must be of length 1
+  expect_error(bc_qcrlsc(omicsData = mdata,
+                         block_cname = "BatchNum",
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall",
+                         keep_qc = c(TRUE,FALSE)),
+               "Input parameter qc_val must be of length 1")
+  # keep_qc must be logical
+  expect_error(bc_qcrlsc(omicsData = mdata,
+                         block_cname = "BatchNum",
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall",
+                         keep_qc = "True"),
+               "Input parameter keep_qc must be logical")
+  
   # error out if we do not have enough QC samples
   expect_error(bc_qcrlsc(omicsData = mdata,
                          block_cname = "BatchNum",
                          qc_cname = "QC",
                          qc_val = "QC.NIST",
                          order_cname = "RunOrderOverall"),
-               "There are too few QC data points that are not NA")
+               "The following molecules have too few non-missing QC data points in at least one")
+  
+  # what if data is not log2
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  expect_error(bc_qcrlsc(omicsData = mdata_abundance,
+                         block_cname = "BatchNum",
+                         qc_cname = "QC",
+                         qc_val = "QC.NIST",
+                         order_cname = "RunOrderOverall"),
+               "QC-RLSC must be ran with log2 abundance values")
   
   # we need to load the bigger data set 
   # Load the reduced metabolite data frames ------------------------------------
@@ -132,14 +157,15 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
                ncol(udn_QC$f_data))
   
   # Attribute check time -------------------------------------------------------
-  # inspect attributes of bc_qcrlsc data frame
-  expect_identical(attr(mdata4,"group_DF"),
-               attr(udn_QC,"group_DF"))
+  og_group_without_QC = attr(mdata4,"group_DF")
+  expect_identical(data.frame(og_group_without_QC),
+                   data.frame(attr(udn_QC,"group_DF")))
   expect_identical(attr(mdata4, 'cnames'),
                    attr(udn_QC, 'cnames'))
   # all information other than batch info should stay the same
-  expect_identical(attributes(mdata4)$data_info[1:3],
-                   attributes(udn_QC)$data_info[1:3])
+  expect_identical(attributes(mdata4)$data_info[1:2],
+                   attributes(udn_QC)$data_info[1:2])
+  expect_equal(attributes(udn_QC)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_QC,"data_info")$num_edata, nrow(udn_QC$e_data))
   expect_equal(attr(udn_QC,"data_info")$num_miss_obs, sum(is.na(udn_QC$e_data)))
   expect_equal(attr(udn_QC,"data_info")$prop_missing, sum(is.na(udn_QC$e_data))/(nrow(udn_QC$e_data)*(ncol(udn_QC$e_data)-1)))
@@ -147,7 +173,14 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
   
   # batch info shold be updated
   expect_identical(attributes(udn_QC)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "qcrlsc_scaling", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_qcrlsc", params = list(block_cname = "BatchNum",
+                                                                                 qc_cname = "QC",
+                                                                                 qc_val = "QC.NIST",
+                                                                                 order_cname = "RunOrderOverall",
+                                                                                 missing_thresh = 0.5,
+                                                                                 rsd_thresh = 0.3,
+                                                                                 backtransform = FALSE,
+                                                                                 keep_qc = FALSE)))
   expect_identical(attr(mdata4, 'meta_info')$meta_data,
                    attr(udn_QC, 'meta_info')$meta_data) 
   expect_identical(attr(mdata4, 'meta_info')$num_emeta,
@@ -194,20 +227,29 @@ test_that('bc_qcrlsc returns the correct data frame and attributes', {
   
   # Attribute check time (with emeta) ------------------------------------------
   # inspect attributes of bc_qcrlsc data frame
-  expect_identical(attr(udn_with_emet,"group_DF"),
-                   attr(udn_QC2,"group_DF"))
+  og_group_without_QC = attr(udn_with_emet,"group_DF")
+  expect_identical(data.frame(og_group_without_QC),
+                   data.frame(attr(udn_QC2,"group_DF")))
   expect_identical(attr(udn_with_emet, 'cnames'),
                    attr(udn_QC2, 'cnames'))
   # look at data_info
-  expect_identical(attributes(mdata4)$data_info[1:3],
-                   attributes(udn_QC2)$data_info[1:3])
+  expect_identical(attributes(mdata4)$data_info[1:2],
+                   attributes(udn_QC2)$data_info[1:2])
+  expect_equal(attributes(udn_QC2)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_QC2,"data_info")$num_edata, nrow(udn_QC2$e_data))
   expect_equal(attr(udn_QC2,"data_info")$num_miss_obs, sum(is.na(udn_QC2$e_data)))
   expect_equal(attr(udn_QC2,"data_info")$prop_missing, sum(is.na(udn_QC2$e_data))/(nrow(udn_QC2$e_data)*(ncol(udn_QC2$e_data)-1)))
   expect_equal(attr(udn_QC2,"data_info")$num_samps, nrow(udn_QC2$f_data))
   # batch info shold be updated
   expect_identical(attributes(udn_QC2)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "qcrlsc_scaling", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_qcrlsc", params = list(block_cname = "BatchNum",
+                                                                            qc_cname = "QC",
+                                                                            qc_val = "QC.NIST",
+                                                                            order_cname = "RunOrderOverall",
+                                                                            missing_thresh = 0.5,
+                                                                            rsd_thresh = 0.3,
+                                                                            backtransform = FALSE,
+                                                                            keep_qc = FALSE)))
   expect_identical(attr(mdata4, 'meta_info')$meta_data,
                    attr(udn_QC2, 'meta_info')$meta_data) 
   expect_identical(attr(mdata4, 'meta_info')$num_emeta,

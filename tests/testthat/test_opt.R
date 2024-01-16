@@ -1,6 +1,6 @@
 context('Run ruvrand to run ruv random on edata')
 
-test_that('opt function in RUVrand returns list of',{
+test_that('opt function in RUVrand returns list',{
   
   # Load the reduced peptide data frames ---------------------------------------
   load(system.file('testdata',
@@ -15,23 +15,27 @@ test_that('opt function in RUVrand returns list of',{
                                 e_meta = emeta,
                                 edata_cname = 'Metabolite',
                                 fdata_cname = 'SampleID',
-                                emeta_cname = 'Metabolite')
-  
+                                emeta_cname = 'Metabolite',
+                                data_scale = 'log2')
+  molfilt <- pmartR::molecule_filter(mdata)
+  mdata <- pmartR::applyFilt(molfilt,mdata)
+  impObj <- imputation(mdata)
+  mdata <- apply_imputation(impObj,mdata)
   # data manipulation for setting up ruv-random
-  edat <- as.matrix(omicsData$e_data[,-1]) %>%
+  edat <- as.matrix(mdata$e_data[,-1]) %>%
     t()
-  molecules <- omicsData$e_data[,1]
+  molecules <- mdata$e_data[,1]
   
   # find the parameter ctl (the negative controls)
-  edat_cname = pmartR::get_edata_cname(omicsData)
-  proper_order_ctl <- omicsData$e_data %>%
+  edat_cname = pmartR::get_edata_cname(mdata)
+  proper_order_ctl <- mdata$e_data %>%
     dplyr::select(dplyr::all_of(edat_cname)) %>%
-    dplyr::left_join(omicsData$e_meta)
-  nc_cnameNum <- which(colnames(proper_order_ctl) == nc_cname)
-  ctlRUV <- proper_order_ctl[,nc_cnameNum] == nc_val
+    dplyr::left_join(mdata$e_meta)
+  nc_cnameNum <- which(colnames(proper_order_ctl) == "IS")
+  ctlRUV <- proper_order_ctl[,nc_cnameNum] == "IS"
   
   # set up parameters for the opt function
-  Y = edat; ctl = ctlRUV; k = k; plotk = FALSE; lambda = NULL
+  Y = edat; ctl = ctlRUV; k = 3
   
   # now set up opt function for use
   Yc<-Y[, ctl]
@@ -75,3 +79,4 @@ test_that('opt function in RUVrand returns list of',{
   # compare function vs manual
   expect_equal(optklambda,opt_manual)
 })
+

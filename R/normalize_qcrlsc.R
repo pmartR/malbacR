@@ -20,6 +20,9 @@
 #'   the data to put the normalized data back on the same scale as the original
 #'   data. Defaults to FALSE. If TRUE, the median of the y-values of the loess
 #'   curve is added to the normalized value for each biomolecule for each batch.
+#' @param keep_qc logical value to determine whether or not to include QC samples in the final output
+#'   of the data (default is set to FALSE)
+#' 
 #' @author Kelly Stratton, Lisa Bramer
 #' @references Dunn,W.B., Broadhurst,D., Begley,P., Zelena,E., Francis-McIntyre,S., Anderson,N., Brown,M.,
 #' Knowles,J.D., Halsall,A., Haselden,J.N. et al. (2011) Procedures for
@@ -35,7 +38,8 @@ normalize_qcrlsc <-
            block_cname,
            qc_cname,
            qc_ind,
-           backtransform = FALSE) {
+           backtransform = FALSE,
+           keep_qc = FALSE) {
     ### initial checks ###
 
     if (!class(omicsData_filt) %in% c("metabData", "lipidData", "pepData", "proData")) {
@@ -106,6 +110,16 @@ normalize_qcrlsc <-
     # check that backtransform is logical #
     if (!is.logical(backtransform)) {
       stop("Input parameter backtransform must be of class 'logical'.")
+    }
+    
+    # check that value in keep_qc is logical
+    if (!is.logical(keep_qc)) {
+      stop("Input parameter keep_qc must be logical (either TRUE or FALSE)")
+    }
+    
+    # check that value in keep_qc is length 1
+    if (length(keep_qc) != 1) {
+      stop("Input parameter qc_val must be of length 1 (e.g. vector containing a single element).")
     }
 
     ### end of initial checks ###
@@ -217,11 +231,15 @@ normalize_qcrlsc <-
     attributes(output_data)$data_info$data_norm <- TRUE
 
     # filter out QC samples #
-    inds <- which(output_data$f_data[, qc_cname] == qc_ind)
-    to_remove <- output_data$f_data[inds, samp_cname]
-
-    myfilter <- pmartR::custom_filter(output_data, f_data_remove = to_remove)
-    output_data2 <- pmartR::applyFilt(myfilter, output_data)
-
+    if(keep_qc == FALSE){
+      inds <- which(output_data$f_data[, qc_cname] == qc_ind)
+      to_remove <- output_data$f_data[inds, samp_cname]
+      
+      myfilter <- pmartR::custom_filter(output_data, f_data_remove = to_remove)
+      output_data2 <- pmartR::applyFilt(myfilter, output_data)
+    } else {
+      output_data2 <- output_data
+    }
+  
     return(output_data2)
   }

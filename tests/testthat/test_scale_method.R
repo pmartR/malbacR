@@ -30,7 +30,7 @@ test_that('scale_method scales the data based on input supplied',{
 
   #### AUTO --------------------------------------------------------------------
   # dance R method
-  auto_dance <- malbacR:::scale_method(dat,"auto")
+  auto_dance <- malbacR:::scale_method(dat,"auto") %>% t()
   # manual method
   # baseline row
   mean_info <- mean(as.numeric(dat[1,]),na.rm = TRUE)
@@ -43,13 +43,17 @@ test_that('scale_method scales the data based on input supplied',{
     new_row <- (dat[i,] - mean_info)/sd_info
     auto_manual <- rbind(auto_manual,new_row)
   }
+  rownames(auto_dance) <- NULL
+  colnames(auto_dance) <- NULL
+  rownames(auto_manual) <- NULL
+  colnames(auto_manual) <- NULL
   
   # run the test
   expect_equal(as.matrix(auto_dance),as.matrix(auto_manual))
   
   #### RANGE -------------------------------------------------------------------
   # dance R method
-  range_dance <- malbacR:::scale_method(dat,"range")
+  range_dance <- malbacR:::scale_method(dat,"range") %>% t()
 
   # manual method
   # baseline row
@@ -63,13 +67,16 @@ test_that('scale_method scales the data based on input supplied',{
     new_row <- (dat[i,] - mean_info)/(range_info[2] - range_info[1])
     range_manual <- rbind(range_manual,new_row)
   }
-
+  rownames(range_dance) <- NULL
+  colnames(range_dance) <- NULL
+  rownames(range_manual) <- NULL
+  colnames(range_manual) <- NULL
   # run the test
   expect_equal(as.matrix(range_dance),as.matrix(range_manual))
   
   #### PARETO ------------------------------------------------------------------
   # dance R method
-  pareto_dance <- malbacR:::scale_method(dat,"pareto")
+  pareto_dance <- malbacR:::scale_method(dat,"pareto") %>% t()
                                                          
   # manual method
   # baseline row
@@ -83,13 +90,16 @@ test_that('scale_method scales the data based on input supplied',{
     new_row <- (dat[i,] - mean_info)/sqrt(sd_info)
     pareto_manual <- rbind(pareto_manual,new_row)
   }
-  
+  rownames(pareto_dance) <- NULL
+  colnames(pareto_dance) <- NULL
+  rownames(pareto_manual) <- NULL
+  colnames(pareto_manual) <- NULL
   # run the test
   expect_equal(as.matrix(pareto_dance),as.matrix(pareto_manual))
   
   #### VAST --------------------------------------------------------------------
   # dance R method
-  vast_dance <- malbacR:::scale_method(dat,"vast")
+  vast_dance <- malbacR:::scale_method(dat,"vast") %>% t()
   
   # manual method
   # baseline row
@@ -103,13 +113,16 @@ test_that('scale_method scales the data based on input supplied',{
     new_row <- mean_info * (dat[i,] - mean_info)/(sd_info^2)
     vast_manual <- rbind(vast_manual,new_row)
   }
-  
+  rownames(vast_dance) <- NULL
+  colnames(vast_dance) <- NULL
+  rownames(vast_manual) <- NULL
+  colnames(vast_manual) <- NULL
   # run the test
   expect_equal(as.matrix(vast_dance),as.matrix(vast_manual))
   
   #### LEVEL -------------------------------------------------------------------
   # dance R method
-  level_dance <- malbacR:::scale_method(dat,"level")
+  level_dance <- malbacR:::scale_method(dat,"level") %>% t()
 
   # manual method
   # baseline row
@@ -121,13 +134,16 @@ test_that('scale_method scales the data based on input supplied',{
     new_row <- (dat[i,] - mean_info)/mean_info
     level_manual <- rbind(level_manual,new_row)
   }
-  
+  rownames(level_dance) <- NULL
+  colnames(level_dance) <- NULL
+  rownames(level_manual) <- NULL
+  colnames(level_manual) <- NULL
   # run the test
   expect_equal(as.matrix(level_dance),as.matrix(level_manual))
   
   #### POWER -------------------------------------------------------------------
   # dance R method
-  power_dance <- malbacR:::scale_method(dat,"power")
+  power_dance <- malbacR:::scale_method(dat,"power") %>% t()
   
   # manual method
   # baseline row
@@ -139,7 +155,10 @@ test_that('scale_method scales the data based on input supplied',{
     new_row <- sqrt(dat[i,]) - mean(as.numeric(vals),na.rm=T)
     power_manual <- rbind(power_manual,new_row)
   }
-  
+  rownames(power_dance) <- NULL
+  colnames(power_dance) <- NULL
+  rownames(power_manual) <- NULL
+  colnames(power_manual) <- NULL
   # run the test
   expect_equal(as.matrix(power_dance),as.matrix(power_manual))
 })

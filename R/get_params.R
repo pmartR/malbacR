@@ -233,7 +233,7 @@ get_params <-
         # temp_data3 is temp_data2 but now broken out by batch num
         temp_data3 = purrr::map(temp_data2,function(td2){
           temp = td2 %>%
-            dplyr::group_by(dplyr::across(block_cname)) %>%
+            dplyr::group_by(!!as.name(block_cname)) %>%
             dplyr::select(tidyselect::all_of(samp_cname),tidyselect::all_of(block_cname),tidyselect::all_of(order_cname),Abundance) %>%
             dplyr::group_split()
           return(temp)

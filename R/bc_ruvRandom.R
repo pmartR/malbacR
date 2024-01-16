@@ -24,8 +24,6 @@
 #' data("pmart_mix")
 #' pmart_mix <- edata_transform(pmart_mix,"log2")
 #' pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum",batch_id = "BatchNum")
-#' pmart_mix <- normalize_global(pmart_mix,subset_fn = "all",norm_fn = "median",
-#'                               apply_norm = TRUE,backtransform = TRUE)
 #' mix_ruv <- bc_ruvRandom(omicsData = pmart_mix, nc_cname = "tag",nc_val = "IS", k = 3)
 #' 
 #' @author Damon Leach
@@ -67,6 +65,11 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
     )
   }
   
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("RUV-random must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
+  
   # which column has the edata cname
   cnameCol <- which(colnames(omicsData$e_data) == pmartR::get_edata_cname(omicsData))
   if (sum(is.na(omicsData$e_data[,-cnameCol]))!=0) {
@@ -83,6 +86,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
   
   # find the parameter ctl (the negative controls)
   edat_cname = pmartR::get_edata_cname(omicsData)
+  fdata_cname = pmartR::get_fdata_cname(omicsData)
   proper_order_ctl <- omicsData$e_data %>%
     dplyr::select(dplyr::all_of(edat_cname)) %>%
     dplyr::left_join(omicsData$e_meta)
@@ -114,7 +118,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
   # find the important values for pmart creation
   
   # find the individual data sets
-  fdat = omicsData$f_data[omicsData$f_data$SampleID %in% colnames(edatRUV),]
+  fdat = omicsData$f_data[omicsData$f_data[[fdata_cname]] %in% colnames(edatRUV),]
   emet <- omicsData$e_meta
   
   # get the variables we need to create pmart object
@@ -133,7 +137,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
   to_remove = which(edatRUV[,edat_cname] %in% bad_eggs[,emet_cname])
   edatRUV <- edatRUV[-to_remove,]
   
-  # create the pmart object #
+  # create the pmart object based on type of omics #
   if(inherits(omicsData,"isobaricpepData") & inherits(omicsData,"pepData")){
     pmartObj = pmartR::as.isobaricpepData(e_data = edatRUV,
                                           edata_cname = edat_cname,
@@ -166,7 +170,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
                                     e_meta = emet,
                                     emeta_cname = emet_cname)
   }
-  else if(inherits(omicsData,"lipidDa}ta")){
+  else if(inherits(omicsData,"lipidData")){
     pmartObj = pmartR::as.lipidData(e_data = edatRUV,
                                     edata_cname = edat_cname,
                                     f_data = fdat,
@@ -175,7 +179,7 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
                                     emeta_cname = emet_cname)
   }
   else if(inherits(omicsData,"nmrData")){
-    pmartObj = pmartR::as.nmrData(e_data = edatRUV,
+    pmartObj = pmartR::as.nmrData(e_data = edatRUV, 
                                   edata_cname = edat_cname,
                                   f_data = fdat,
                                   fdata_cname = fdat_cname,
@@ -199,13 +203,19 @@ bc_ruvRandom <- function(omicsData,nc_cname,nc_val,k = 3) {
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
   
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "ruv_random",
-    params = list()
+    bc_method = "bc_ruvRandom",
+    params = list(nc_cname = nc_cname,
+                  nc_val = nc_val,
+                  k = k)
   )
-  
+  # update normalization as well 
+  attributes(pmartObj)$data_info$norm_info <- list(
+    is_normalized = TRUE,
+    norm_type = "bc_ruvRandom"
+  )
   # Update the meta_info attribute.
   attr(pmartObj, 'meta_info') <- pmartR:::set_meta_info(
     e_meta = omicsData$e_meta,

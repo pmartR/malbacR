@@ -3,6 +3,11 @@
 # data manipulation code
 
 ################################### dataset 1 ##################################
+# retain seed after  running code
+if (!exists(".Random.seed")) runif(1)
+old_seed <- .Random.seed
+on.exit(.Random.seed <- old_seed)
+
 # load in library with original data
 library(WaveICA2.0)
 # load in dataset

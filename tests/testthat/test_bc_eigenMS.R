@@ -15,9 +15,8 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
                               e_meta = emeta,
                               edata_cname = 'Metabolite',
                               fdata_cname = 'SampleID',
-                              emeta_cname = 'Metabolite')
-  attributes(mdata)$data_info$data_scale_orig <- "log2"
-  attributes(mdata)$data_info$data_scale <- "log2"
+                              emeta_cname = 'Metabolite',
+                              data_scale = "log2")
   
   # Check for any warning errors -----------------------------------------------
   
@@ -25,11 +24,22 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
   expect_error(bc_eigenMS(mdata),
                "omicsData must have group_designation ran")
   
-  # Check the dimensions of results --------------------------------------------
-  
-  # run the real version
+  # add in group designation
   mdata <- pmartR::group_designation(mdata,main_effects = "Age",
                                      batch_id = "BatchName")
+  
+  # what if data not log2
+  mdata_abundance <- pmartR::edata_transform(mdata,"abundance")
+  expect_error(bc_eigenMS(mdata_abundance),
+               "EigenMS must be ran with log2 abundance values")
+  
+  # Check the dimensions of results --------------------------------------------
+  # retain seed after  running code
+  if (!exists(".Random.seed")) runif(1)
+  old_seed <- .Random.seed
+  on.exit(.Random.seed <- old_seed)
+  
+  
   
   # we should now get a warning because we have not applied molecule filter with
   # use_groups = TRUE
@@ -70,8 +80,9 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
   # check cnames
   expect_equal(attr(mdata,"cnames"),attr(udn_scaled,"cnames"))
   # check data info
-  expect_equal(attributes(mdata)$data_info[1:3],
-               attributes(udn_scaled)$data_info[1:3])
+  expect_equal(attributes(mdata)$data_info[1:2],
+               attributes(udn_scaled)$data_info[1:2])
+  expect_equal(attributes(udn_scaled)$data_info$norm_info$is_norm,TRUE)
   expect_equal(attr(udn_scaled,"data_info")$num_edata, nrow(udn_scaled$e_data))
   expect_equal(attr(udn_scaled,"data_info")$num_miss_obs, sum(is.na(udn_scaled$e_data)))
   expect_equal(attr(udn_scaled,"data_info")$prop_missing, sum(is.na(udn_scaled$e_data))/(nrow(udn_scaled$e_data)*(ncol(udn_scaled$e_data)-1)))
@@ -88,6 +99,6 @@ test_that('bc_eigenMS returns the correct data frame and attributes',{
   
   # batch info should be updated
   expect_identical(attributes(udn_scaled)$data_info$batch_info,
-                   list(is_bc = TRUE,bc_method = "eigenMS", params = list()))
+                   list(is_bc = TRUE,bc_method = "bc_eigenMS", params = list()))
 })
 

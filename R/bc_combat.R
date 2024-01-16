@@ -63,6 +63,11 @@ bc_combat <- function(omicsData,use_groups = FALSE){
       stop (paste("omicsData must have molecule filter applied with use_batch = TRUE and min_num = 2"))
     }
   }
+  
+  # check that data is on log2 scale
+  if(attributes(omicsData)$data_info$data_scale != "log2"){
+    stop ("ComBat must be ran with log2 abundance values. Please transform your data to 'log2'.")
+  }
 
   # important information for downstream analysis ------------------------------
   
@@ -189,11 +194,11 @@ bc_combat <- function(omicsData,use_groups = FALSE){
   # Add the group information to the group_DF attribute in the omicsData object.
   attr(pmartObj, "group_DF") = attr(omicsData,"group_DF")
 
-  # Update the data_info attribute.
+  # Update the data_info attribute for batch
   attributes(pmartObj)$data_info$batch_info <- list(
     is_bc = TRUE,
-    bc_method = "combat",
-    params = list()
+    bc_method = "bc_combat",
+    params = list(use_groups = use_groups)
   )
   
   # Update the meta_info attribute (this should be the same from before combat)
