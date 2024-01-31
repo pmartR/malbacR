@@ -68,13 +68,13 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
   
   # check that list has names
   if (is.null(names(omicsData_beca_list))){
-    stop("The parameter batch_list must be a named list")
+    stop("The parameter omicsData_beca_list must be a named list")
   }
   
   # check that omicsData_beca_list is of appropriate class #
   if(sum(unlist(lapply(omicsData_beca_list,function(x) !inherits(x,c("pepData", "proData", "metabData", "lipidData",
                                                                    "nmrData"))))) > 0){
-    stop (paste("omicsData_beca_list be a list containing only objects of class 'pepData', 'proData', 'metabData',",
+    stop (paste("omicsData_beca_list must be a list containing only objects of class 'pepData', 'proData', 'metabData',",
                 "'lipidData', or 'nmrData'",
                 sep = ' '))
   }

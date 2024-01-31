@@ -110,9 +110,9 @@ amide_eigen <- bc_eigenMS(omicsData = pmart_amideFilt)
 
 # WaveICA2.0
 amide_wave_abundance <- bc_waveica(omicsData = pmart_amideFilt_abundance, injection_cname = "Injection_order",
-                         version = "WaveICA2.0", alpha = 0, cutoff_injection = 0.1, K = 10)
+                         version = "WaveICA2.0", alpha = 0, cutoff_injection = 0.1, K = 10,
+                         negative_to_na = TRUE)
 amide_wave <- edata_transform(omicsData = amide_wave_abundance, data_scale = "log2")
-amide_wave$e_data[is.na(amide_wave$e_data)] <- NA
 
 # QC-RFSC
 amide_qcrfsc_abundance <- bc_qcrfsc(omicsData = pmart_amideFilt_abundance,qc_cname = "group",qc_val = "QC",
@@ -192,9 +192,9 @@ mix_nomis <- edata_transform(omicsData = mix_nomis_abundance, data_scale = "log2
 mix_combat <- bc_combat(omicsData = pmart_mixFilt)
 
 mix_waveica_abundance <- bc_waveica(omicsData = pmart_mixFilt_abundance,batch_cname = "BatchNum",
-                                    version = "WaveICA",alpha = 0, K = 20, cutoff_batch = 0.05, cutoff_group = 0.05)
+                                    version = "WaveICA",alpha = 0, K = 20, cutoff_batch = 0.05, 
+                                    cutoff_group = 0.05,negative_to_na = TRUE)
 mix_waveica <- edata_transform(omicsData = mix_waveica_abundance, data_scale = "log2")
-mix_waveica$e_data[is.na(mix_waveica$e_data)] <- NA
 ```
 
 ### Mix: Data Visualization

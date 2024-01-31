@@ -170,15 +170,15 @@ For WaveICA2.0, users will use the same parameters with the exception of specify
 
 Like SERRF and QC-RFSC, WaveICA and WaveICA2.0 requires both complete observations and raw abundance values [@waveica_paper]. Therefore, we use the imputed data set that has already been created and follow a similar procedure of log2 transforming the data to impute the data, converting back to raw abundance values to run batch correction. After batch correction, we log2 transform the data back again.
 
-It is noted that WaveICA can yield negative raw abundance values. When converting to a log2 scale, these values will become NA and may impact downstream analyses.
+It is noted that WaveICA can yield negative raw abundance values. When converting to a log2 scale, these values will become NA and may impact downstream analyses. Users can choose to specify `negative_to_na` to be TRUE and all abundance values that are negative will be returned as NA.
 
 ```{r, results = 'hide'}
 amide_wave_abundance <- bc_waveica(omicsData = amide_imp_raw, batch_cname = "batch",
                          version = "WaveICA2.0",
                          injection_cname = "Injection_order",alpha = 0,
-                         cutoff_injection = 0.1, K = 10)
+                         cutoff_injection = 0.1, K = 10,
+                         negative_to_na = TRUE)
 amide_wave <- edata_transform(omicsData = amide_wave_abundance, data_scale = "log2")
-amide_wave$e_data[is.na(amide_wave$e_data)] <- NA
 ```
 
 ### Amide: Data Visualization
@@ -298,9 +298,9 @@ mix_range <- bc_range(omicsData = pmart_mix_log)
 mix_pareto <- bc_pareto(omicsData = pmart_mix_log)
 mix_power <- bc_power(omicsData = pmart_mix_log)
 mix_waveica_abundance <- bc_waveica(omicsData = pmart_mix,batch_cname = "BatchNum",
-                          version = "WaveICA",cutoff_batch = 0.05, cutoff_group = 0.05)
+                          version = "WaveICA",cutoff_batch = 0.05, cutoff_group = 0.05,
+                          negative_to_na = TRUE)
 mix_waveica <- edata_transform(omicsData = mix_waveica_abundance, data_scale = "log2")
-mix_waveica$e_data[is.na(mix_waveica$e_data)] <- NA
 ```
 
 ### Mix: Data Visualization
