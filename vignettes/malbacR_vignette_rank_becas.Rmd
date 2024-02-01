@@ -1,0 +1,160 @@
+---
+title: 'malbacR: A Vignette Pertaining to Ranking BECAS'
+author: "Damon Leach, Kelly Stratton, Lisa Bramer"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    df_print: paged
+    rmarkdown::html_vignette:
+    fig_caption: yes
+    self_contained: yes
+    toc: true
+bibliography: analysis_ref.bib
+vignette: >
+  %\VignetteIndexEntry{malbacR-expanded-unfiltered} 
+  %\VignetteEngine{knitr::rmarkdown} 
+  %\VignetteEncoding{UTF-8}
+---
+
+### Introduction
+
+The R package `malbacR` is a new package that deals with batch correction methods of small molecule omics data. It works in conjunction with `pmartR`, an R package designed for preprocessing, filtering, and analyzing multi-omics data [@pmartr; @pmartr2].
+
+This outline demonstrates the use of the function `rank_becas` inside the the `malbacR` package. This function allows users to rank batch correction methods based on two commonly used metrics, the coefficient of variation and the distance between centroids of batch clusters from a PCA. Additionally, we incorporate a new metric that is more robust to data that has both a strong biological signal as well as data that may not have a strong of a signal - the difference in R2m/R2c between the batch corrected data and the unnormalized data.
+
+First we load in the necessary libraries which is the `malbacR` package itself and `pmartR` [@pmartr2] which `malbacR` works with compatibly. Additionally, `ggplot2` is loaded for some slight graphical manipulations.
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(malbacR)
+library(pmartR)
+library(ggplot2)
+```
+
+We load in the `pmart_amide` data set from the package `malbacR` originally found in the package `WaveICA2.0` [@waveica_package].
+
+```{r}
+data(pmart_amide)
+```
+
+We then run through some general pre-processing steps with the use of functions from `pmartR` by assigning a group designation, log2 transforming the data, and run a median centering normalization.
+
+```{r}
+pmart_amide <- group_designation(pmart_amide,main_effects = "group",batch_id = "batch")
+pmart_amide_log <- edata_transform(pmart_amide,"log2")
+pmart_amide_norm <- normalize_global(pmart_amide_log,subset_fn = "all",norm_fn = "median",
+                                apply_norm = TRUE,backtransform = TRUE)
+```
+
+We then run some potential BECAs using the corresponding functions in `malbacR` using the preferred data input (log2 transformed or raw abundance values) for each specific BECA. Missing values are imputed for BECAs that require complete data.
+
+```{r}
+# range scaling
+amide_range <- bc_range(omicsData = pmart_amide_log)
+
+# power scaling
+amide_power <- bc_power(omicsData = pmart_amide_log)
+
+# pareto scaling
+amide_pareto <- bc_pareto(omicsData = pmart_amide_log)
+
+# tiger
+tigerFilt <- tiger_filter(pmart_amide,sampletype_cname = "group",test_val = "QC")
+pmart_amideFilt <- apply_tigerFilt(tigerFilt,pmart_amide)
+amide_tiger_abundance <- bc_tiger(omicsData = pmart_amideFilt,sampletype_cname = "group",
+                        test_val = "QC",injection_cname = "Injection_order",group_cname = "group")
+amide_tiger <- edata_transform(omicsData = amide_tiger_abundance, data_scale = "log2")
+
+# serrf
+impObj <- imputation(omicsData = pmart_amide_log)
+amide_imp_log <- apply_imputation(impObj,pmart_amide_log)
+amide_imp_raw <- edata_transform(amide_imp_log,"abundance")
+
+amide_serrf_abundance <- bc_serrf(omicsData = amide_imp_raw,sampletype_cname = "group",test_val = "QC",group_cname = "group")
+amide_serrf <- edata_transform(omicsData = amide_serrf_abundance,data_scale = "log2")
+
+# qcrfsc
+amide_qcrfsc_abundance <- bc_qcrfsc(omicsData = amide_imp_raw,qc_cname = "group",qc_val = "QC",
+                                    order_cname = "Injection_order",group_cname = "group",
+                                    ntree = 500, keep_qc = FALSE)
+amide_qcrfsc <- edata_transform(omicsData = amide_qcrfsc_abundance,data_scale = "log2")
+
+# combat
+amide_combat <- bc_combat(omicsData = pmart_amide_norm, use_groups = FALSE)
+
+# eigenMS
+amide_eigen <- bc_eigenMS(omicsData = pmart_amide_log)
+```
+
+As some methods (QC-RFSC, TIGER, and SERRF) remove the QC samples in the process, we remove those samples from the other methods as well.
+
+```{r}
+qc_samples <- pmart_amide_log$f_data$SampleID[which(pmart_amide_log$f_data$group == "QC")]
+
+cfilt <- pmartR::custom_filter(amide_combat, f_data_remove = qc_samples)
+amide_combat <- pmartR::applyFilt(cfilt,amide_combat)
+
+cfilt <- pmartR::custom_filter(amide_eigen, f_data_remove = qc_samples)
+amide_eigen <- pmartR::applyFilt(cfilt,amide_eigen)
+
+cfilt <- pmartR::custom_filter(amide_power, f_data_remove = qc_samples)
+amide_power <- pmartR::applyFilt(cfilt,amide_power)
+
+cfilt <- pmartR::custom_filter(amide_pareto, f_data_remove = qc_samples)
+amide_pareto <- pmartR::applyFilt(cfilt,amide_pareto)
+
+cfilt <- pmartR::custom_filter(amide_range, f_data_remove = qc_samples)
+amide_range <- pmartR::applyFilt(cfilt,amide_range)
+```
+
+We then create a named list `becas` which contains the `pmartR` objects for each of the 8 different BECAs being compared.
+
+```{r}
+becas = list(Power = amide_power, Pareto = amide_pareto, Range = amide_range,
+             ComBat = amide_combat, EigenMS = amide_eigen,
+             QCRFSC = amide_qcrfsc, TIGER = amide_tiger, SERRF = amide_serrf)
+```
+
+### Ranking BECAs
+
+We then rank the methods with three different potential metrics: the coefficient of variation (CV), the distance between batch clusters in a PCA, and the difference in R2m/R2c between batch corrected data and unnormalized data. This metric utilizes a mixed effect model for each molecule and determines the conditional and marginal R2 values based on the method introduced by Nakagawa and  Schielzeth [@r2mr2c]. It then subtracts the ratio of the marginal R2 and the conditional R2 of the unnormalized dataset from the ratio of the batch corrected data and determines the median value. In general, we recommend this final metric as it is more robust to data that has both a large biological signal as well as to data in which there is less biological signal.
+
+We rank the data using the function `rank_becas` in `malbacR`. This function has five arguments:
+
+1. `omicsData_beca_list`: a named list with the `pmartR` objects of batch corrected data
+2. `comparison_method`: a string supplying the metric used to compare BECAs (`cv` for the coefficient of variation, `distance_pca` for the distance between clusters of batches in PCA, and `r2_diff` for the difference in R2m/R2c between batch corrected data and unnormalized data)
+3. `batch_effect_cname`: a string supplying the column name in `f_data` element of a `pmartR` object that contains batch information for each sample
+4. `main_effect_cname`: a string supplying the column name in `f_data` element of a `pmartR` object that contains group/main effect information for each sample
+5. `omicsData_unnormalized`: `pmartR` object containing the unnormalized data (this is only required if the `comparison_method` is `r2_diff`, otherwise the default is NULL)
+
+First, we rank the BECAs using the coefficient of variation.
+
+```{r}
+cv_rankings <- rank_becas(omicsData_beca_list = becas, comparison_method = "cv",
+                          batch_effect_cname = "batch", main_effect_cname = "group")
+cv_rankings
+```
+
+Next, we rank the data based on the distance between batch clusters in a PCA.
+
+```{r}
+pca_rankings <- rank_becas(omicsData_beca_list = becas, comparison_method = "distance_pca",
+                          batch_effect_cname = "batch", main_effect_cname = "group")
+pca_rankings
+```
+
+Finally, we rank the data using the difference in R2m/R2c for batch corrected data and unnormalized data.
+
+```{r}
+r2_rankings <- rank_becas(omicsData_beca_list = becas, comparison_method = "r2_diff",
+                          batch_effect_cname = "batch", main_effect_cname = "group",
+                          omicsData_unnormalized = pmart_amide_log)
+r2_rankings
+```
+
+It becomes evident that some of these metrics contradict each other. For example, using the CV, Power Scaling becomes the preferred BECA of choice, but it is ranked 6th by the other 2 metrics. In this scenario, the distance between clusters and the difference in R2m/R2c have very similar rankings as there is a strong biological signal. In scenarios where there is less signal from the main effect, the distance between PCA clusters is likely to underperform.
+
+### References

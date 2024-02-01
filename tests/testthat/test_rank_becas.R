@@ -1,4 +1,4 @@
-context('Run TIGER Normalization')
+context('Rank BECAs')
 
 test_that('bc_tiger returns the correct data frame and attributes',{
   
@@ -216,8 +216,8 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   expect_equal(pca_rankings,pca_manual_rankings)
   
   # r2_diff
-  r2_rankings = pca_rankings = rank_becas(omicsData_beca_list = becas,
-                                          comparison_method = "distance_pca", batch_effect_cname = "BatchNum",
+  r2_rankings = rank_becas(omicsData_beca_list = becas,
+                                          comparison_method = "r2_diff", batch_effect_cname = "BatchNum",
                                           main_effect_cname = "Sex", omicsData_unnormalized = mdata)
   # manual version
   # run the data on unnormalized data
@@ -388,9 +388,15 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   qcrfsc_diff = qcrfsc_all_med$medDiff
   
   r2_manual_rankings = data.frame(BECA = c("ComBat","EigenMS","SERRF","QCRFSC","Power"),
-                                   Ranking = c(combat_diff,eigen_diff,serrf_diff,qcrfsc_diff,power_diff)) %>%
-    dplyr::arrange(Ranking) %>%
+                                   Value = c(combat_diff,eigen_diff,serrf_diff,qcrfsc_diff,power_diff)) %>%
+    dplyr::arrange(Value) %>%
     dplyr::mutate(Ranking = seq(from = 1, to = 5, by = 1))
-  expect_equal(pca_rankings,pca_manual_rankings)
+  for(i in 2:nrow(r2_manual_rankings)){
+    if(r2_manual_rankings$Value[i] == r2_manual_rankings$Value[i-1]){
+      r2_manual_rankings$Ranking[i] = r2_manual_rankings$Ranking[i-1]
+      }
+  }
+  r2_manual_rankings = r2_manual_rankings %>% dplyr::select(-Value)
+  expect_equal(r2_rankings,r2_manual_rankings)
   
 })

@@ -20,7 +20,7 @@ The R package `malbacR` is a new package that deals with batch correction method
 
 This outline demonstrates the functionality and use of the `malbacR` package. Within this package, there are four data sets: `pmart_amide`, `pmart_amideFilt`,`pmart_mix`, and `pmart_mixFilt`. The first two objects contain data originally found in the package `WaveICA2.0` [@waveica_package]. The second two objects contain data originally found in the package `crmn` [@crmn_package]. The data sets with the suffix "Filt" are filtered versions of the original data sets. That is, unlike their non-filtered counterparts, these data objects require no additional data manipulation for batch correction to successfully run. For this example, we work with the filtered data sets to demonstrate how the `malbacR` functions work.
 
-Within `malbacR` there are 11 batch correction methods:
+Within `malbacR` there are 12 batch correction methods:
 
 1. Range Scaling [@scaling_paper]
 2. Power Scaling [@scaling_paper]

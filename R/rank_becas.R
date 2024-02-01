@@ -278,10 +278,19 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
       ball_all_med$medDiff
     })
     ranking_df = data.frame(r2_scores) %>% t() %>% data.frame() %>%
-      dplyr::rename(Ranking = ".") %>%
-      dplyr::arrange(desc(Ranking)) %>%
+      dplyr::rename(Value = ".") %>%
+      dplyr::arrange(desc(Value)) %>%
       dplyr::mutate(Ranking = seq(from = 1, to = length(omicsData_beca_list), by = 1)) %>%
       tibble::rownames_to_column(var = "BECA")
+    # update for ties
+    if(length(ranking_df$Value) != length(unique(ranking_df$Value))){
+      for(i in 2:nrow(ranking_df)){
+        if(ranking_df$Value[i] == ranking_df$Value[i-1]){
+          ranking_df$Ranking[i] = ranking_df$Ranking[i-1]
+        }
+      }
+    }
+    ranking_df = ranking_df %>% dplyr::select(-Value)
   }
   ranking_df
 }
