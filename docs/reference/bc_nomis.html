@@ -28,6 +28,7 @@ normalization regarding batch effect correction"><!-- mathjax --><script src="ht
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/malbacR_vignette_condensed_filtered.html">malbacR: A Vignette Pertaining to Pre-Filtered Data</a>
     <a class="dropdown-item" href="../articles/malbacR_vignette_expanded_unfiltered.html">malbacR: A Vignette Pertaining to Unfiltered Data</a>
+    <a class="dropdown-item" href="../articles/malbacR_vignette_rank_becas.html">malbacR: A Vignette Pertaining to Ranking BECAS</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -94,15 +95,11 @@ to consider when running the batch correction method, defaults to 2</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">malbacR</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pmartr.github.io/malbacR/">malbacR</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pmartR/pmartR" class="external-link">pmartR</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"pmart_mix"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">pmart_mix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">pmart_mix</span>,<span class="st">"log2"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">pmart_mix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">pmart_mix</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span>,batch_id <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">pmart_mix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/normalize_global.html" class="external-link">normalize_global</a></span><span class="op">(</span><span class="va">pmart_mix</span>,subset_fn <span class="op">=</span> <span class="st">"all"</span>,norm_fn <span class="op">=</span> <span class="st">"median"</span>,</span></span>
-<span class="r-in"><span>                              apply_norm <span class="op">=</span> <span class="cn">TRUE</span>,backtransform <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">mix_nomis</span> <span class="op">&lt;-</span> <span class="fu">bc_nomis</span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span>, is_cname <span class="op">=</span> <span class="st">"tag"</span>, is_val <span class="op">=</span> <span class="st">"IS"</span>, num_pc <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>‘&lt;’ not meaningful for factors</span>
+<span class="r-in"><span><span class="va">mix_nomis_abundance</span> <span class="op">&lt;-</span> <span class="fu">bc_nomis</span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span>, is_cname <span class="op">=</span> <span class="st">"tag"</span>, is_val <span class="op">=</span> <span class="st">"IS"</span>, num_pc <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Joining with `by = join_by(Metabolite)`</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
