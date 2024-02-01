@@ -1,4 +1,7 @@
 url: https://pmartr.github.io/malbacR/
 template:
   bootstrap: 5
-
+articles:
+  malbacR_vignette_condensed_filtered: malbacR_vignette_condensed_filtered.html
+  malbacR_vignette_expanded_unfiltered: malbacR_vignette_expanded_unfiltered.html
+  malbacR_vignette_rank_becas: malbacR_vignette_rank_becas.html
