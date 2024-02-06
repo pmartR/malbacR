@@ -28,6 +28,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/malbacR_vignette_condensed_filtered.html">malbacR: A Vignette Pertaining to Pre-Filtered Data</a>
     <a class="dropdown-item" href="../articles/malbacR_vignette_expanded_unfiltered.html">malbacR: A Vignette Pertaining to Unfiltered Data</a>
+    <a class="dropdown-item" href="../articles/malbacR_vignette_rank_becas.html">malbacR: A Vignette Pertaining to Ranking BECAS</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -57,6 +58,7 @@
 <span>  <span class="va">qc_cname</span>,</span>
 <span>  <span class="va">qc_val</span>,</span>
 <span>  <span class="va">order_cname</span>,</span>
+<span>  <span class="va">group_cname</span>,</span>
 <span>  ntree <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  keep_qc <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -84,6 +86,11 @@ indicates a QC sample</p></dd>
 <dt>order_cname</dt>
 <dd><p>character string giving name of column in omicsData$f_data
 that contains the run order</p></dd>
+
+
+<dt>group_cname</dt>
+<dd><p>character string giving the name of the column in omicsData$f_data
+that contians the group information</p></dd>
 
 
 <dt>ntree</dt>
@@ -116,7 +123,7 @@ a raw abundance scale for bc_qcrfsc</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">malbacR</span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pmartr.github.io/malbacR/">malbacR</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pmartR/pmartR" class="external-link">pmartR</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"pmart_amide"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">pmart_amide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">pmart_amide</span>,<span class="st">"log2"</span><span class="op">)</span></span></span>
@@ -124,7 +131,7 @@ a raw abundance scale for bc_qcrfsc</p>
 <span class="r-in"><span><span class="va">amide_imp</span> <span class="op">&lt;-</span> <span class="fu"><a href="apply_imputation.html">apply_imputation</a></span><span class="op">(</span>imputeData <span class="op">=</span> <span class="va">impObj</span>, omicsData <span class="op">=</span> <span class="va">pmart_amide</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">amide_imp_abund</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">amide_imp</span>,<span class="st">"abundance"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">amide_imp_abund</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_imp_abund</span>,main_effects <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">amide_qcrfsc</span> <span class="op">&lt;-</span> <span class="fu">bc_qcrfsc</span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_imp_abund</span>,qc_cname <span class="op">=</span> <span class="st">"group"</span>,qc_val <span class="op">=</span> <span class="st">"QC"</span>,order_cname <span class="op">=</span> <span class="st">"Injection_order"</span>,ntree <span class="op">=</span> <span class="fl">500</span>,keep_qc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">amide_qcrfsc</span> <span class="op">&lt;-</span> <span class="fu">bc_qcrfsc</span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_imp_abund</span>,qc_cname <span class="op">=</span> <span class="st">"group"</span>,qc_val <span class="op">=</span> <span class="st">"QC"</span>,order_cname <span class="op">=</span> <span class="st">"Injection_order"</span>,group_cname <span class="op">=</span> <span class="st">"group"</span>, ntree <span class="op">=</span> <span class="fl">500</span>,keep_qc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
