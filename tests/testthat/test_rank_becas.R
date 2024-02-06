@@ -143,7 +143,7 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   # every molecule in omics list should be in unnormalized data (does not have to be the other way per se)
   unknown = mdata$e_data$Metabolite[which(stringr::str_detect(mdata$e_data$Metabolite,"Unidentified"))]
   molfilt <- pmartR::custom_filter(mdata, e_data_remove = unknown)
-  mdata_reduced <- applyFilt(molfilt,mdata)
+  mdata_reduced <- pmartR::applyFilt(molfilt,mdata)
   expect_error(rank_becas(omicsData_beca_list = becas,
                           comparison_method = "r2_diff",batch_effect_cname = "BatchNum",
                           main_effect_cname = "Sex", omicsData_unnormalized = mdata_reduced),
@@ -162,8 +162,9 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   cv_qcrfsc = median(pmartR::cv_filter(mdata_qcrfsc,use_groups = T)$CV,na.rm=T)
   cv_power = median(pmartR::cv_filter(mdata_power,use_groups = T)$CV,na.rm=T)
   cv_manual_rankings = data.frame(BECA = c("ComBat","EigenMS","SERRF","QCRFSC","Power"),
-             Ranking = c(cv_combat,cv_eigen,cv_serrf,cv_qcrfsc,cv_power)) %>%
-    dplyr::arrange(Ranking) %>%
+             Value = c(cv_combat,cv_eigen,cv_serrf,cv_qcrfsc,cv_power)) %>%
+    dplyr::arrange(Value) %>%
+    dplyr::mutate(Value = round(Value,3)) %>%
     dplyr::mutate(Ranking = seq(from = 1, to = 5, by = 1))
   # compare versions
   expect_equal(cv_rankings, cv_manual_rankings)
@@ -210,8 +211,9 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   dist_power = as.numeric(sqrt((centroid_power[1,2] - centroid_power[2,2])^2 + (centroid_power[1,3] - centroid_power[2,3])^2))
 
   pca_manual_rankings = data.frame(BECA = c("ComBat","EigenMS","SERRF","QCRFSC","Power"),
-                                   Ranking = c(dist_combat,dist_eigen,dist_serrf,dist_qcrfsc,dist_power)) %>%
-    dplyr::arrange(Ranking) %>%
+                                   Value = c(dist_combat,dist_eigen,dist_serrf,dist_qcrfsc,dist_power)) %>%
+    dplyr::arrange(Value) %>%
+    dplyr::mutate(Value = round(Value,3)) %>%
     dplyr::mutate(Ranking = seq(from = 1, to = 5, by = 1))
   expect_equal(pca_rankings,pca_manual_rankings)
   
@@ -390,13 +392,13 @@ test_that('bc_tiger returns the correct data frame and attributes',{
   r2_manual_rankings = data.frame(BECA = c("ComBat","EigenMS","SERRF","QCRFSC","Power"),
                                    Value = c(combat_diff,eigen_diff,serrf_diff,qcrfsc_diff,power_diff)) %>%
     dplyr::arrange(Value) %>%
+    dplyr::mutate(Value = round(Value,3)) %>%
     dplyr::mutate(Ranking = seq(from = 1, to = 5, by = 1))
   for(i in 2:nrow(r2_manual_rankings)){
     if(r2_manual_rankings$Value[i] == r2_manual_rankings$Value[i-1]){
       r2_manual_rankings$Ranking[i] = r2_manual_rankings$Ranking[i-1]
       }
   }
-  r2_manual_rankings = r2_manual_rankings %>% dplyr::select(-Value)
   expect_equal(r2_rankings,r2_manual_rankings)
   
 })

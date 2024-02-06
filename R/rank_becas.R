@@ -172,8 +172,9 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
     })
     
     ranking_df = data.frame(cv_filt_scores) %>% t() %>% data.frame() %>%
-      dplyr::rename(Ranking = ".") %>%
-      dplyr::arrange(Ranking) %>%
+      dplyr::rename(Value = ".") %>%
+      dplyr::arrange(Value) %>%
+      dplyr::mutate(Value = round(Value,3)) %>%
       dplyr::mutate(Ranking = seq(from = 1, to = length(omicsData_beca_list), by = 1)) %>%
       tibble::rownames_to_column(var = "BECA")
   }
@@ -191,8 +192,9 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
       median(dist(centroid_pmart[,-1]))
     })
     ranking_df = data.frame(distance_scores) %>% t() %>% data.frame() %>%
-      dplyr::rename(Ranking = ".") %>%
-      dplyr::arrange(Ranking) %>%
+      dplyr::rename(Value = ".") %>%
+      dplyr::arrange(Value) %>%
+      dplyr::mutate(Value = round(Value,3)) %>%
       dplyr::mutate(Ranking = seq(from = 1, to = length(omicsData_beca_list), by = 1)) %>%
       tibble::rownames_to_column(var = "BECA")
   }
@@ -290,7 +292,7 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
         }
       }
     }
-    ranking_df = ranking_df %>% dplyr::select(-Value)
+    ranking_df %>% dplyr::mutate(Value = round(Value,3))
   }
   ranking_df
 }

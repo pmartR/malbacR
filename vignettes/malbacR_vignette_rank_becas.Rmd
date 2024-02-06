@@ -20,7 +20,7 @@ vignette: >
 
 The R package `malbacR` is a new package that deals with batch correction methods of small molecule omics data. It works in conjunction with `pmartR`, an R package designed for preprocessing, filtering, and analyzing multi-omics data [@pmartr; @pmartr2].
 
-This outline demonstrates the use of the function `rank_becas` inside the the `malbacR` package. This function allows users to rank batch correction methods based on two commonly used metrics, the coefficient of variation and the distance between centroids of batch clusters from a PCA. Additionally, we incorporate a new metric that is more robust to data that has both a strong biological signal as well as data that may not have a strong of a signal - the difference in R2m/R2c between the batch corrected data and the unnormalized data.
+This outline demonstrates the use of the function `rank_becas` inside the the `malbacR` package. This function allows users to rank batch correction methods based on multiple commonly used metrics, the coefficient of variation and the distance between centroids of batch clusters from a PCA. Additionally, we incorporate a new metric that is more robust to data that has both a strong biological signal as well as data that may not have a strong of a signal - the difference in R2m/R2c between the batch corrected data and the unnormalized data.
 
 First we load in the necessary libraries which is the `malbacR` package itself and `pmartR` [@pmartr2] which `malbacR` works with compatibly. Additionally, `ggplot2` is loaded for some slight graphical manipulations.
 
@@ -49,7 +49,7 @@ pmart_amide_norm <- normalize_global(pmart_amide_log,subset_fn = "all",norm_fn =
                                 apply_norm = TRUE,backtransform = TRUE)
 ```
 
-We then run some potential BECAs using the corresponding functions in `malbacR` using the preferred data input (log2 transformed or raw abundance values) for each specific BECA. Missing values are imputed for BECAs that require complete data.
+We then run eight different BECAs using the corresponding functions in `malbacR` using the preferred data input (i.e. log2 transformed or raw abundance values, normalized data or unnormalized data) for each specific BECA. Missing values are imputed for BECAs that require complete data.
 
 ```{r}
 # range scaling
@@ -130,6 +130,8 @@ We rank the data using the function `rank_becas` in `malbacR`. This function has
 4. `main_effect_cname`: a string supplying the column name in `f_data` element of a `pmartR` object that contains group/main effect information for each sample
 5. `omicsData_unnormalized`: `pmartR` object containing the unnormalized data (this is only required if the `comparison_method` is `r2_diff`, otherwise the default is NULL)
 
+The output of this function is a dataframe with three columns. Each row in the dataframe corresponds to one of the `pmartR` objects in `omicsData_beca_list`. The first column is `BECA` which corresponds to the names supplied to the named list in `omicsData_beca_list`, the second column is `Value` which is the value of the metric for the specific batch corrected dataset, and the final column is `Ranking` which is simply an integer from 1 to the number of datasets being analyzed (with 1 being the best BECA based on that specific metric).
+
 First, we rank the BECAs using the coefficient of variation.
 
 ```{r}
@@ -155,6 +157,6 @@ r2_rankings <- rank_becas(omicsData_beca_list = becas, comparison_method = "r2_d
 r2_rankings
 ```
 
-It becomes evident that some of these metrics contradict each other. For example, using the CV, Power Scaling becomes the preferred BECA of choice, but it is ranked 6th by the other 2 metrics. In this scenario, the distance between clusters and the difference in R2m/R2c have very similar rankings as there is a strong biological signal. In scenarios where there is less signal from the main effect, the distance between PCA clusters is likely to underperform.
+It becomes evident that some of these metrics contradict each other. For example, using the CV, Power Scaling becomes the preferred BECA of choice, but it is ranked 6th by the other 2 metrics. In this scenario, the distance between clusters and the difference in R2m/R2c have very similar rankings as there is a strong biological signal within this dataset. However, in scenarios where there is less signal from the main effect, the distance between PCA clusters is likely to underperform. In contrast, the difference in R2m/R2c is more robust to the amount of biological signal from the data.
 
 ### References
