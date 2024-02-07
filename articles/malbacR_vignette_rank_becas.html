@@ -38,13 +38,8 @@
 <li class="nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
 </li>
-<li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/malbacR_vignette_condensed_filtered.html">malbacR: A Vignette Pertaining to Pre-Filtered Data</a>
-    <a class="dropdown-item" href="../articles/malbacR_vignette_expanded_unfiltered.html">malbacR: A Vignette Pertaining to Unfiltered Data</a>
-    <a class="dropdown-item" href="../articles/malbacR_vignette_rank_becas.html">malbacR: A Vignette Pertaining to Ranking BECAS</a>
-  </div>
+<li class="active nav-item">
+  <a class="nav-link" href="../articles/index.html">Articles</a>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -67,7 +62,7 @@
                         <h4 data-toc-skip class="author">Damon Leach,
 Kelly Stratton, Lisa Bramer</h4>
             
-            <h4 data-toc-skip class="date">2024-02-01</h4>
+            <h4 data-toc-skip class="date">2024-02-07</h4>
       
       
       <div class="d-none name"><code>malbacR_vignette_rank_becas.Rmd</code></div>
@@ -84,10 +79,10 @@ conjunction with <code>pmartR</code>, an R package designed for
 preprocessing, filtering, and analyzing multi-omics data <span class="citation">(Stratton et al. 2019; Degnan et al. 2023)</span>.</p>
 <p>This outline demonstrates the use of the function
 <code>rank_becas</code> inside the the <code>malbacR</code> package.
-This function allows users to rank batch correction methods based on two
-commonly used metrics, the coefficient of variation and the distance
-between centroids of batch clusters from a PCA. Additionally, we
-incorporate a new metric that is more robust to data that has both a
+This function allows users to rank batch correction methods based on
+multiple commonly used metrics, the coefficient of variation and the
+distance between centroids of batch clusters from a PCA. Additionally,
+we incorporate a new metric that is more robust to data that has both a
 strong biological signal as well as data that may not have a strong of a
 signal - the difference in R2m/R2c between the batch corrected data and
 the unnormalized data.</p>
@@ -114,10 +109,11 @@ normalization.</p>
 <span><span class="va">pmart_amide_log</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">pmart_amide</span>,<span class="st">"log2"</span><span class="op">)</span></span>
 <span><span class="va">pmart_amide_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/normalize_global.html" class="external-link">normalize_global</a></span><span class="op">(</span><span class="va">pmart_amide_log</span>,subset_fn <span class="op">=</span> <span class="st">"all"</span>,norm_fn <span class="op">=</span> <span class="st">"median"</span>,</span>
 <span>                                apply_norm <span class="op">=</span> <span class="cn">TRUE</span>,backtransform <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p>We then run some potential BECAs using the corresponding functions in
-<code>malbacR</code> using the preferred data input (log2 transformed or
-raw abundance values) for each specific BECA. Missing values are imputed
-for BECAs that require complete data.</p>
+<p>We then run eight different BECAs using the corresponding functions
+in <code>malbacR</code> using the preferred data input (i.e. log2
+transformed or raw abundance values, normalized data or unnormalized
+data) for each specific BECA. Missing values are imputed for BECAs that
+require complete data.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># range scaling</span></span>
 <span><span class="va">amide_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_range.html">bc_range</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span></span>
@@ -221,35 +217,44 @@ containing the unnormalized data (this is only required if the
 <code>comparison_method</code> is <code>r2_diff</code>, otherwise the
 default is NULL)</li>
 </ol>
+<p>The output of this function is a dataframe with three columns. Each
+row in the dataframe corresponds to one of the <code>pmartR</code>
+objects in <code>omicsData_beca_list</code>. The first column is
+<code>BECA</code> which corresponds to the names supplied to the named
+list in <code>omicsData_beca_list</code>, the second column is
+<code>Value</code> which is the value of the metric for the specific
+batch corrected dataset, and the final column is <code>Ranking</code>
+which is simply an integer from 1 to the number of datasets being
+analyzed (with 1 being the best BECA based on that specific metric).</p>
 <p>First, we rank the BECAs using the coefficient of variation.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cv_rankings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rank_becas.html">rank_becas</a></span><span class="op">(</span>omicsData_beca_list <span class="op">=</span> <span class="va">becas</span>, comparison_method <span class="op">=</span> <span class="st">"cv"</span>,</span>
 <span>                          batch_effect_cname <span class="op">=</span> <span class="st">"batch"</span>, main_effect_cname <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
 <span><span class="va">cv_rankings</span></span></code></pre></div>
-<pre><code><span><span class="co">##      BECA Ranking</span></span>
-<span><span class="co">## 1   Power       1</span></span>
-<span><span class="co">## 2   Range       2</span></span>
-<span><span class="co">## 3 EigenMS       3</span></span>
-<span><span class="co">## 4   SERRF       4</span></span>
-<span><span class="co">## 5  ComBat       5</span></span>
-<span><span class="co">## 6   TIGER       6</span></span>
-<span><span class="co">## 7  QCRFSC       7</span></span>
-<span><span class="co">## 8  Pareto       8</span></span></code></pre>
+<pre><code><span><span class="co">##      BECA  Value Ranking</span></span>
+<span><span class="co">## 1   Power  7.818       1</span></span>
+<span><span class="co">## 2   Range 10.529       2</span></span>
+<span><span class="co">## 3 EigenMS 39.976       3</span></span>
+<span><span class="co">## 4   SERRF 43.358       4</span></span>
+<span><span class="co">## 5  ComBat 46.881       5</span></span>
+<span><span class="co">## 6   TIGER 47.648       6</span></span>
+<span><span class="co">## 7  QCRFSC 50.567       7</span></span>
+<span><span class="co">## 8  Pareto 62.897       8</span></span></code></pre>
 <p>Next, we rank the data based on the distance between batch clusters
 in a PCA.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pca_rankings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rank_becas.html">rank_becas</a></span><span class="op">(</span>omicsData_beca_list <span class="op">=</span> <span class="va">becas</span>, comparison_method <span class="op">=</span> <span class="st">"distance_pca"</span>,</span>
 <span>                          batch_effect_cname <span class="op">=</span> <span class="st">"batch"</span>, main_effect_cname <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
 <span><span class="va">pca_rankings</span></span></code></pre></div>
-<pre><code><span><span class="co">##      BECA Ranking</span></span>
-<span><span class="co">## 1  ComBat       1</span></span>
-<span><span class="co">## 2 EigenMS       2</span></span>
-<span><span class="co">## 3   SERRF       3</span></span>
-<span><span class="co">## 4  QCRFSC       4</span></span>
-<span><span class="co">## 5   TIGER       5</span></span>
-<span><span class="co">## 6   Power       6</span></span>
-<span><span class="co">## 7  Pareto       7</span></span>
-<span><span class="co">## 8   Range       8</span></span></code></pre>
+<pre><code><span><span class="co">##      BECA Value Ranking</span></span>
+<span><span class="co">## 1  ComBat 0.012       1</span></span>
+<span><span class="co">## 2 EigenMS 0.021       2</span></span>
+<span><span class="co">## 3   SERRF 0.039       3</span></span>
+<span><span class="co">## 4  QCRFSC 0.418       4</span></span>
+<span><span class="co">## 5   TIGER 0.481       5</span></span>
+<span><span class="co">## 6   Power 0.891       6</span></span>
+<span><span class="co">## 7  Pareto 0.894       7</span></span>
+<span><span class="co">## 8   Range 0.894       8</span></span></code></pre>
 <p>Finally, we rank the data using the difference in R2m/R2c for batch
 corrected data and unnormalized data.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -257,22 +262,24 @@ corrected data and unnormalized data.</p>
 <span>                          batch_effect_cname <span class="op">=</span> <span class="st">"batch"</span>, main_effect_cname <span class="op">=</span> <span class="st">"group"</span>,</span>
 <span>                          omicsData_unnormalized <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span></span>
 <span><span class="va">r2_rankings</span></span></code></pre></div>
-<pre><code><span><span class="co">##      BECA Ranking</span></span>
-<span><span class="co">## 1  ComBat       1</span></span>
-<span><span class="co">## 2 EigenMS       2</span></span>
-<span><span class="co">## 3   SERRF       3</span></span>
-<span><span class="co">## 4  QCRFSC       4</span></span>
-<span><span class="co">## 5   TIGER       5</span></span>
-<span><span class="co">## 6   Power       6</span></span>
-<span><span class="co">## 7  Pareto       7</span></span>
-<span><span class="co">## 8   Range       8</span></span></code></pre>
+<pre><code><span><span class="co">##      BECA  Value Ranking</span></span>
+<span><span class="co">## 1  ComBat  0.991       1</span></span>
+<span><span class="co">## 2 EigenMS  0.990       2</span></span>
+<span><span class="co">## 3   SERRF  0.298       3</span></span>
+<span><span class="co">## 4  QCRFSC  0.011       4</span></span>
+<span><span class="co">## 5   TIGER  0.007       5</span></span>
+<span><span class="co">## 6   Power -0.002       6</span></span>
+<span><span class="co">## 7  Pareto -0.002       7</span></span>
+<span><span class="co">## 8   Range -0.002       8</span></span></code></pre>
 <p>It becomes evident that some of these metrics contradict each other.
 For example, using the CV, Power Scaling becomes the preferred BECA of
 choice, but it is ranked 6th by the other 2 metrics. In this scenario,
 the distance between clusters and the difference in R2m/R2c have very
-similar rankings as there is a strong biological signal. In scenarios
-where there is less signal from the main effect, the distance between
-PCA clusters is likely to underperform.</p>
+similar rankings as there is a strong biological signal within this
+dataset. However, in scenarios where there is less signal from the main
+effect, the distance between PCA clusters is likely to underperform. In
+contrast, the difference in R2m/R2c is more robust to the amount of
+biological signal from the data.</p>
 </div>
 <div class="section level3 unnumbered">
 <h3 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
