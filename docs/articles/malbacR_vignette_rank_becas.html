@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Damon Leach,
 Kelly Stratton, Lisa Bramer</h4>
             
-            <h4 data-toc-skip class="date">2024-02-06</h4>
+            <h4 data-toc-skip class="date">2024-02-07</h4>
       
       
       <div class="d-none name"><code>malbacR_vignette_rank_becas.Rmd</code></div>
@@ -231,30 +231,30 @@ analyzed (with 1 being the best BECA based on that specific metric).</p>
 <code class="sourceCode R"><span><span class="va">cv_rankings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rank_becas.html">rank_becas</a></span><span class="op">(</span>omicsData_beca_list <span class="op">=</span> <span class="va">becas</span>, comparison_method <span class="op">=</span> <span class="st">"cv"</span>,</span>
 <span>                          batch_effect_cname <span class="op">=</span> <span class="st">"batch"</span>, main_effect_cname <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
 <span><span class="va">cv_rankings</span></span></code></pre></div>
-<pre><code><span><span class="co">##      BECA Ranking</span></span>
-<span><span class="co">## 1   Power       1</span></span>
-<span><span class="co">## 2   Range       2</span></span>
-<span><span class="co">## 3 EigenMS       3</span></span>
-<span><span class="co">## 4   SERRF       4</span></span>
-<span><span class="co">## 5  ComBat       5</span></span>
-<span><span class="co">## 6   TIGER       6</span></span>
-<span><span class="co">## 7  QCRFSC       7</span></span>
-<span><span class="co">## 8  Pareto       8</span></span></code></pre>
+<pre><code><span><span class="co">##      BECA  Value Ranking</span></span>
+<span><span class="co">## 1   Power  7.818       1</span></span>
+<span><span class="co">## 2   Range 10.529       2</span></span>
+<span><span class="co">## 3 EigenMS 39.976       3</span></span>
+<span><span class="co">## 4   SERRF 43.358       4</span></span>
+<span><span class="co">## 5  ComBat 46.881       5</span></span>
+<span><span class="co">## 6   TIGER 47.648       6</span></span>
+<span><span class="co">## 7  QCRFSC 50.567       7</span></span>
+<span><span class="co">## 8  Pareto 62.897       8</span></span></code></pre>
 <p>Next, we rank the data based on the distance between batch clusters
 in a PCA.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pca_rankings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rank_becas.html">rank_becas</a></span><span class="op">(</span>omicsData_beca_list <span class="op">=</span> <span class="va">becas</span>, comparison_method <span class="op">=</span> <span class="st">"distance_pca"</span>,</span>
 <span>                          batch_effect_cname <span class="op">=</span> <span class="st">"batch"</span>, main_effect_cname <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
 <span><span class="va">pca_rankings</span></span></code></pre></div>
-<pre><code><span><span class="co">##      BECA Ranking</span></span>
-<span><span class="co">## 1  ComBat       1</span></span>
-<span><span class="co">## 2 EigenMS       2</span></span>
-<span><span class="co">## 3   SERRF       3</span></span>
-<span><span class="co">## 4  QCRFSC       4</span></span>
-<span><span class="co">## 5   TIGER       5</span></span>
-<span><span class="co">## 6   Power       6</span></span>
-<span><span class="co">## 7  Pareto       7</span></span>
-<span><span class="co">## 8   Range       8</span></span></code></pre>
+<pre><code><span><span class="co">##      BECA Value Ranking</span></span>
+<span><span class="co">## 1  ComBat 0.012       1</span></span>
+<span><span class="co">## 2 EigenMS 0.021       2</span></span>
+<span><span class="co">## 3   SERRF 0.039       3</span></span>
+<span><span class="co">## 4  QCRFSC 0.418       4</span></span>
+<span><span class="co">## 5   TIGER 0.481       5</span></span>
+<span><span class="co">## 6   Power 0.891       6</span></span>
+<span><span class="co">## 7  Pareto 0.894       7</span></span>
+<span><span class="co">## 8   Range 0.894       8</span></span></code></pre>
 <p>Finally, we rank the data using the difference in R2m/R2c for batch
 corrected data and unnormalized data.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -262,15 +262,15 @@ corrected data and unnormalized data.</p>
 <span>                          batch_effect_cname <span class="op">=</span> <span class="st">"batch"</span>, main_effect_cname <span class="op">=</span> <span class="st">"group"</span>,</span>
 <span>                          omicsData_unnormalized <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span></span>
 <span><span class="va">r2_rankings</span></span></code></pre></div>
-<pre><code><span><span class="co">##      BECA Ranking</span></span>
-<span><span class="co">## 1  ComBat       1</span></span>
-<span><span class="co">## 2 EigenMS       2</span></span>
-<span><span class="co">## 3   SERRF       3</span></span>
-<span><span class="co">## 4  QCRFSC       4</span></span>
-<span><span class="co">## 5   TIGER       5</span></span>
-<span><span class="co">## 6   Power       6</span></span>
-<span><span class="co">## 7  Pareto       7</span></span>
-<span><span class="co">## 8   Range       8</span></span></code></pre>
+<pre><code><span><span class="co">##      BECA  Value Ranking</span></span>
+<span><span class="co">## 1  ComBat  0.991       1</span></span>
+<span><span class="co">## 2 EigenMS  0.990       2</span></span>
+<span><span class="co">## 3   SERRF  0.298       3</span></span>
+<span><span class="co">## 4  QCRFSC  0.011       4</span></span>
+<span><span class="co">## 5   TIGER  0.007       5</span></span>
+<span><span class="co">## 6   Power -0.002       6</span></span>
+<span><span class="co">## 7  Pareto -0.002       7</span></span>
+<span><span class="co">## 8   Range -0.002       8</span></span></code></pre>
 <p>It becomes evident that some of these metrics contradict each other.
 For example, using the CV, Power Scaling becomes the preferred BECA of
 choice, but it is ranked 6th by the other 2 metrics. In this scenario,
