@@ -2,6 +2,12 @@ url: https://pmartr.github.io/malbacR/
 template:
   bootstrap: 5
 articles:
-  malbacR_vignette_condensed_filtered: malbacR_vignette_condensed_filtered.html
-  malbacR_vignette_expanded_unfiltered: malbacR_vignette_expanded_unfiltered.html
-  malbacR_vignette_rank_becas: malbacR_vignette_rank_becas.html
+- title: malbacR_vignette_condensed_filtered
+  contents:
+  - malbacR_vignette_condensed_filtered
+- title: malbacR_vignette_expanded_unfiltered
+  contents:
+  - malbacR_vignette_expanded_unfiltered
+- title: malbacR_vignette_rank_becas
+  contents:
+  - malbacR_vignette_rank_becas

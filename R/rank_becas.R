@@ -292,7 +292,7 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
         }
       }
     }
-    ranking_df %>% dplyr::mutate(Value = round(Value,3))
+    ranking_df <- ranking_df %>% dplyr::mutate(Value = round(Value,3))
   }
   ranking_df
 }
