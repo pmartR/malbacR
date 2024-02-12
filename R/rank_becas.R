@@ -75,8 +75,7 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
   if(sum(unlist(lapply(omicsData_beca_list,function(x) !inherits(x,c("pepData", "proData", "metabData", "lipidData",
                                                                    "nmrData"))))) > 0){
     stop (paste("omicsData_beca_list must be a list containing only objects of class 'pepData', 'proData', 'metabData',",
-                "'lipidData', or 'nmrData'",
-                sep = ' '))
+                "'lipidData', or 'nmrData'"))
   }
   
   #  batch effect cname must be a character
@@ -135,8 +134,7 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
                                             "nmrData"))) {
       
       stop (paste("omicsData_unnormalized must be of class 'pepData', 'proData', 'metabData',",
-                  "'lipidData', or 'nmrData'",
-                  sep = ' '))
+                  "'lipidData', or 'nmrData'"))
     }
     if (attributes(omicsData_unnormalized)$data_info$norm_info$is_norm) {
       stop (paste("Input parameter omicsData_unnormalized must be unnormalized data"))

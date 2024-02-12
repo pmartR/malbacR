@@ -24,7 +24,7 @@
 #' @param K maximal component that ICA decomposes, defaults to 20 (though recommendation for K = 10
 #'  when using "WaveICA2.0")
 #' @param negative_to_na logical argument that if set to TRUE (default), any raw abundance values that 
-#' are calculated as a negative value are converted to NA values, this is important if downstream analyese
+#' are calculated as a negative value are converted to NA values, this is important if downstream analyses
 #' require log2 transformed data
 #'  
 #' @return Object of same class as omicsData that has been undergone

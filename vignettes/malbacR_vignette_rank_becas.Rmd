@@ -18,7 +18,7 @@ vignette: >
 
 ### Introduction
 
-The R package `malbacR` is a new package that deals with batch correction methods of small molecule omics data. It works in conjunction with `pmartR`, an R package designed for preprocessing, filtering, and analyzing multi-omics data [@pmartr; @pmartr2].
+The R package `malbacR` is a package that deals with batch correction methods of small molecule omics data. It works in conjunction with `pmartR`, an R package designed for preprocessing, filtering, and analyzing multi-omics data [@pmartr; @pmartr2].
 
 This outline demonstrates the use of the function `rank_becas` inside the the `malbacR` package. This function allows users to rank batch correction methods based on multiple commonly used metrics, the coefficient of variation and the distance between centroids of batch clusters from a PCA. Additionally, we incorporate a new metric that is more robust to data that has both a strong biological signal as well as data that may not have a strong of a signal - the difference in R2m/R2c between the batch corrected data and the unnormalized data.
 
