@@ -185,7 +185,7 @@ mix_ruv <- bc_ruvRandom(omicsData = pmart_mixFilt, nc_cname = "tag",nc_val = "IS
 
 # NOMIS
 pmart_mixFilt_abundance <- edata_transform(omicsData = pmart_mixFilt, data_scale = "abundance")
-mix_nomis_abundance <- bc_nomis(omicsData = pmart_mixFilt_abundance, is_cname = "tag", is_val = "IS", num_pc = 2)
+mix_nomis_abundance <- bc_nomis(omicsData = pmart_mixFilt_abundance, is_cname = "tag", is_val = "IS")
 mix_nomis <- edata_transform(omicsData = mix_nomis_abundance, data_scale = "log2")
 
 # OTHER METHODS

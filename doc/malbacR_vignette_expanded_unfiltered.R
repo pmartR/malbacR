@@ -139,7 +139,7 @@ pmart_mix_norm <- normalize_global(pmart_mix_log,subset_fn = "all",norm_fn = "me
 mix_ruv <- bc_ruvRandom(omicsData = pmart_mix_log, nc_cname = "tag",nc_val = "IS", k = 3)
 
 ## -----------------------------------------------------------------------------
-mix_nomis_abundance <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", num_pc = 2)
+mix_nomis_abundance <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS")
 mix_nomis <- edata_transform(omicsData = mix_nomis_abundance, data_scale = "log2")
 
 ## -----------------------------------------------------------------------------

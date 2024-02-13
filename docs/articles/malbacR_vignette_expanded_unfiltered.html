@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Damon Leach,
 Kelly Stratton, Lisa Bramer</h4>
             
-            <h4 data-toc-skip class="date">2024-02-12</h4>
+            <h4 data-toc-skip class="date">2024-02-13</h4>
       
       
       <div class="d-none name"><code>malbacR_vignette_expanded_unfiltered.Rmd</code></div>
@@ -473,15 +473,14 @@ normalized.</p>
 is NOMIS which uses the function <code>bc_nomis</code> and takes the
 parameters <code>omicsData</code>, <code>is_cname</code> (column in
 <code>e_meta</code> which has the information on internal standards),
-<code>is_val</code> (the value within <code>is_cname</code> that is the
-value for internal standards) and <code>num_pc</code> (number of
-principal components for NOMIS to consider).</p>
+and <code>is_val</code> (the value within <code>is_cname</code> that is
+the value for internal standards)</p>
 <p>NOMIS is ran on raw abundance values. As there no missing values,
 data does not need to be imputed. However, if there were missing values,
 a similar procedure as to what was done with SERRF with the amide data,
 would be required.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mix_nomis_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_nomis.html">bc_nomis</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span>, is_cname <span class="op">=</span> <span class="st">"tag"</span>, is_val <span class="op">=</span> <span class="st">"IS"</span>, num_pc <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">mix_nomis_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_nomis.html">bc_nomis</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span>, is_cname <span class="op">=</span> <span class="st">"tag"</span>, is_val <span class="op">=</span> <span class="st">"IS"</span><span class="op">)</span></span>
 <span><span class="va">mix_nomis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_nomis_abundance</span>, data_scale <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level5">

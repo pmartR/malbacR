@@ -108,6 +108,5 @@ test_that('bc_nomis returns the correct data frame and attributes',{
   # batch info should be updated
   expect_identical(attributes(udn_nomis)$data_info$batch_info,
                    list(is_bc = TRUE,bc_method = "bc_nomis", params = list(is_cname = "IS",
-                                                                           is_val = "IS",
-                                                                           num_pc = 2)))
+                                                                           is_val = "IS")))
 })

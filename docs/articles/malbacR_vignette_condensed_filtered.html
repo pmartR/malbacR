@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Damon Leach,
 Kelly Stratton, Lisa Bramer</h4>
             
-            <h4 data-toc-skip class="date">2024-02-12</h4>
+            <h4 data-toc-skip class="date">2024-02-13</h4>
       
       
       <div class="d-none name"><code>malbacR_vignette_condensed_filtered.Rmd</code></div>
@@ -284,7 +284,7 @@ WaveICA.</p>
 <span></span>
 <span><span class="co"># NOMIS</span></span>
 <span><span class="va">pmart_mixFilt_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mixFilt</span>, data_scale <span class="op">=</span> <span class="st">"abundance"</span><span class="op">)</span></span>
-<span><span class="va">mix_nomis_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_nomis.html">bc_nomis</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mixFilt_abundance</span>, is_cname <span class="op">=</span> <span class="st">"tag"</span>, is_val <span class="op">=</span> <span class="st">"IS"</span>, num_pc <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">mix_nomis_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_nomis.html">bc_nomis</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mixFilt_abundance</span>, is_cname <span class="op">=</span> <span class="st">"tag"</span>, is_val <span class="op">=</span> <span class="st">"IS"</span><span class="op">)</span></span>
 <span><span class="va">mix_nomis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_nomis_abundance</span>, data_scale <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># OTHER METHODS</span></span>

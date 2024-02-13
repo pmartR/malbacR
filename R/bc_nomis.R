@@ -12,8 +12,6 @@
 #'  standards or not
 #' @param is_val value giving the name/value in the is_cname column that indicates
 #'  that the sample is an Internal Standards sample
-#' @param num_pc numeric variable providing the number of principal components for NOMIS
-#'  to consider when running the batch correction method, defaults to 2
 #'  
 #' @return Object of same class as omicsData that has been undergone
 #'   NOMIS normalization
@@ -23,13 +21,13 @@
 #' library(pmartR)
 #' data("pmart_mix")
 #' pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum",batch_id = "BatchNum")
-#' mix_nomis_abundance <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", num_pc = 2)
+#' mix_nomis_abundance <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS")
 #' 
 #' @author Damon Leach
 #' 
 #' @export
 #' 
-bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
+bc_nomis <- function(omicsData,is_cname,is_val){
   
   # run through checks ---------------------------------------------------------
   
@@ -79,11 +77,6 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
     stop(
       "Input parameter is_val must be a value found in the is_cname column from the e_meta of omicsData."
     )
-  }
-  
-  # num_pc
-  if (class(num_pc) != "numeric"){
-    stop("Input parameter num_pc must be of class 'numeric'.")
   }
   
   # NOMIS requires no missing values
@@ -138,8 +131,7 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
   edatNomis <- crmn::normalize(object = edat,
                          method = "nomis",
                          factor = modMatrix,
-                         standards = isInternal,
-                         ncomp = num_pc)
+                         standards = isInternal)
   
   # move back into pmart object ------------------------------------------------
   
@@ -237,8 +229,7 @@ bc_nomis <- function(omicsData,is_cname,is_val,num_pc = 2){
     is_bc = TRUE,
     bc_method = "bc_nomis",
     params = list(is_cname = is_cname,
-                  is_val = is_val,
-                  num_pc = num_pc)
+                  is_val = is_val)
   )
 
   # update normalization as well 

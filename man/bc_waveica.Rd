@@ -45,7 +45,7 @@ should be between 0 and 1, defaults to 0.05 (to be used for WaveICA)}
 should be between 0 and 1, defaults to 0.05 (to be used for WaveICA)}
 
 \item{negative_to_na}{logical argument that if set to TRUE (default), any raw abundance values that 
-are calculated as a negative value are converted to NA values, this is important if downstream analyese
+are calculated as a negative value are converted to NA values, this is important if downstream analyses
 require log2 transformed data}
 
 \item{batach_cname}{character string giving the name of the colum in omicsData$f_data
