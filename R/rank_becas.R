@@ -254,7 +254,7 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
         tibble::remove_rownames() %>%
         tibble::column_to_rownames(var = edata_cname) %>%
         as.matrix() %>%
-        matrixStats::rowMedians(na.rm=T) %>%
+        matrixStats::rowMedians(na.rm=T,use_names = TRUE) %>%
         data.frame() %>%
         tibble::rownames_to_column(var = edata_cname) %>%
         dplyr::rename("medAbund" = ".")
