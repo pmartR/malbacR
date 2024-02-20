@@ -216,7 +216,7 @@ rank_becas <- function(omicsData_beca_list,comparison_method = "r2_diff",
           #dat = ball_nest$data[[1]] %>% dplyr::filter(Batch != "B1")
           lmer_res = lme4::lmer(abundance ~ !!as.symbol(main_effect_cname) + (1|!!as.symbol(batch_effect_cname)), data = dat,
                                 control = lme4::lmerControl(check.conv.singular = lme4::.makeCC(action = "ignore", tol = 1e-4)))
-          MuMIn::r.squaredGLMM(lmer_res)
+          suppressWarnings({MuMIn::r.squaredGLMM(lmer_res)})
         }))
       
       ball_r2_unnormalized <- ball_nest %>% 
