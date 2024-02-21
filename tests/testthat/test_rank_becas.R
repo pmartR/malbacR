@@ -245,7 +245,7 @@ test_that('bc_tiger returns the correct data frame and attributes',{
     tibble::remove_rownames() %>%
     tibble::column_to_rownames(var = "Metabolite") %>%
     as.matrix() %>%
-    matrixStats::rowMedians(na.rm=T) %>%
+    matrixStats::rowMedians(na.rm=TRUE,useNames = TRUE) %>%
     data.frame() %>%
     tibble::rownames_to_column(var = "Metabolite") %>%
     dplyr::rename("medAbund" = ".")
