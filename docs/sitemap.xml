@@ -1,138 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/404.html</loc>
+    <loc>https://pmartr.github.io/malbacR/404.html</loc>
   </url>
   <url>
-    <loc>/articles/index.html</loc>
+    <loc>https://pmartr.github.io/malbacR/articles/index.html</loc>
   </url>
   <url>
-    <loc>/articles/malbacR_vignette_condensed_filtered.html</loc>
+    <loc>https://pmartr.github.io/malbacR/articles/malbacR_vignette_condensed_filtered.html</loc>
   </url>
   <url>
-    <loc>/articles/malbacR_vignette_expanded_unfiltered.html</loc>
+    <loc>https://pmartr.github.io/malbacR/articles/malbacR_vignette_expanded_unfiltered.html</loc>
   </url>
   <url>
-    <loc>/authors.html</loc>
+    <loc>https://pmartr.github.io/malbacR/articles/malbacR_vignette_rank_becas.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
+    <loc>https://pmartr.github.io/malbacR/authors.html</loc>
   </url>
   <url>
-    <loc>/reference/Internal.boxplot.stats.html</loc>
+    <loc>https://pmartr.github.io/malbacR/index.html</loc>
   </url>
   <url>
-    <loc>/reference/Internal.compute_cor.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/Internal.compute_cor.html</loc>
   </url>
   <url>
-    <loc>/reference/Internal.compute_errorRatio.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/Internal.compute_errorRatio.html</loc>
   </url>
   <url>
-    <loc>/reference/Internal.compute_targetVal.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/Internal.compute_targetVal.html</loc>
   </url>
   <url>
-    <loc>/reference/Internal.createFolds.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/Internal.createFolds.html</loc>
   </url>
   <url>
-    <loc>/reference/Internal.remove_NA.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/Internal.remove_NA.html</loc>
   </url>
   <url>
-    <loc>/reference/Internal.run_ensemble.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/Internal.run_ensemble.html</loc>
   </url>
   <url>
-    <loc>/reference/apply_imputation.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/apply_imputation.html</loc>
   </url>
   <url>
-    <loc>/reference/apply_tigerFilt.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/apply_tigerFilt.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_combat.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_combat.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_eigenMS.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_eigenMS.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_nomis.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_nomis.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_pareto.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_pareto.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_power.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_power.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_qcrfsc.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_qcrfsc.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_qcrlsc.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_qcrlsc.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_range.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_range.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_ruvRandom.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_ruvRandom.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_serrf.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_serrf.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_tiger.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_tiger.html</loc>
   </url>
   <url>
-    <loc>/reference/bc_waveica.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/bc_waveica.html</loc>
   </url>
   <url>
-    <loc>/reference/compute_RSD.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/compute_RSD.html</loc>
   </url>
   <url>
-    <loc>/reference/compute_targetVal.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/compute_targetVal.html</loc>
   </url>
   <url>
-    <loc>/reference/danceR_filter_worker.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/danceR_filter_worker.html</loc>
   </url>
   <url>
-    <loc>/reference/get_params.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/get_batch_method.html</loc>
   </url>
   <url>
-    <loc>/reference/imputation.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/get_batch_parameters.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/get_params.html</loc>
   </url>
   <url>
-    <loc>/reference/normalize_qcrlsc.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/imputation.html</loc>
   </url>
   <url>
-    <loc>/reference/optimal_span.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/index.html</loc>
   </url>
   <url>
-    <loc>/reference/pmart_amide.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/normalize_qcrlsc.html</loc>
   </url>
   <url>
-    <loc>/reference/pmart_amideFilt.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/optimal_span.html</loc>
   </url>
   <url>
-    <loc>/reference/pmart_mix.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/pmart_amide.html</loc>
   </url>
   <url>
-    <loc>/reference/pmart_mixFilt.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/pmart_amideFilt.html</loc>
   </url>
   <url>
-    <loc>/reference/print-tigerFilt.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/pmart_mix.html</loc>
   </url>
   <url>
-    <loc>/reference/reexports.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/pmart_mixFilt.html</loc>
   </url>
   <url>
-    <loc>/reference/run_TIGER_internal.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/print-tigerFilt.html</loc>
   </url>
   <url>
-    <loc>/reference/scale_method.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/rank_becas.html</loc>
   </url>
   <url>
-    <loc>/reference/select_variable.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/reexports.html</loc>
   </url>
   <url>
-    <loc>/reference/tiger_filter.html</loc>
+    <loc>https://pmartr.github.io/malbacR/reference/run_TIGER_internal.html</loc>
+  </url>
+  <url>
+    <loc>https://pmartr.github.io/malbacR/reference/scale_method.html</loc>
+  </url>
+  <url>
+    <loc>https://pmartr.github.io/malbacR/reference/select_variable.html</loc>
+  </url>
+  <url>
+    <loc>https://pmartr.github.io/malbacR/reference/tiger_filter.html</loc>
   </url>
 </urlset>

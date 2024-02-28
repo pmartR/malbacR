@@ -96,7 +96,7 @@ pmart_mix <- normalize_global(pmart_mix,subset_fn = "all",norm_fn = "median",
 # ruv-random
 mix_ruv <- bc_ruvRandom(omicsData = pmart_mix, nc_cname = "tag",nc_val = "IS", k = 3)
 # nomis
-mix_nomis <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", num_pc = 2)
+mix_nomis <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS")
 # combat
 mix_combat <- bc_combat(omicsData = pmart_mix)
 

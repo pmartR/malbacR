@@ -102,6 +102,12 @@ test_that('bc_waveica returns the correct data frame and attributes',{
   # convert to raw abundance values
   udn_complete <- pmartR::edata_transform(udn_complete,"abundance")
   
+  # negative_to_na
+  # must be a logical argument
+  expect_error(bc_waveica(udn_complete, batch_cname = "BatchNum",
+                          negative_to_na = "True"),
+               "The input parameter negative_to_na must be a logical argument")
+  
   # run wave ica
   udn_wave <- bc_waveica(udn_complete,batch_cname = "BatchNum")
   
@@ -217,7 +223,9 @@ test_that('bc_waveica returns the correct data frame and attributes',{
   udn_complete <- pmartR::edata_transform(udn_complete,"abundance")
   # run wave ica
   udn_wave <- bc_waveica(udn_complete,version = "WaveICA2.0",injection_cname = "RunOrderOverall")
-
+  udn_wave_keepNeg <- bc_waveica(udn_complete,version = "WaveICA2.0",injection_cname = "RunOrderOverall",
+                                 negative_to_na = FALSE)
+  
   # Investigate the e_data, f_data, and e_meta data frames.
   expect_equal(dim(udn_complete$e_data),
                dim(udn_wave$e_data))
@@ -263,4 +271,12 @@ test_that('bc_waveica returns the correct data frame and attributes',{
                                                                              cutoff_group = 0.05,
                                                                              alpha = 0,
                                                                              K = 20)))
+  # compare keeping negative values and not
+  # we should have no negative values when negative_to_na = TRUE
+  expect_equal(sum(udn_wave$e_data < 0, na.rm=T),0)
+  # NA values should match where negative values are present
+  expect_equal(sum(is.na(udn_wave$e_data)), sum(udn_wave_keepNeg$e_data < 0,na.rm =T))
+  # if we convert negative values to NA, the dataframes should be the same
+  udn_wave_keepNeg$e_data[udn_wave_keepNeg$e_data < 0] <- NA
+  expect_equal(udn_wave$e_data,udn_wave_keepNeg$e_data)
 })

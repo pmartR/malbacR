@@ -4,7 +4,7 @@
 \alias{bc_nomis}
 \title{NOMIS normalized adjusted object}
 \usage{
-bc_nomis(omicsData, is_cname, is_val, num_pc = 2)
+bc_nomis(omicsData, is_cname, is_val)
 }
 \arguments{
 \item{omicsData}{an object of the class 'pepData', 'proData', 'metabData',
@@ -18,9 +18,6 @@ standards or not}
 
 \item{is_val}{value giving the name/value in the is_cname column that indicates
 that the sample is an Internal Standards sample}
-
-\item{num_pc}{numeric variable providing the number of principal components for NOMIS
-to consider when running the batch correction method, defaults to 2}
 }
 \value{
 Object of same class as omicsData that has been undergone
@@ -35,7 +32,7 @@ library(malbacR)
 library(pmartR)
 data("pmart_mix")
 pmart_mix <- group_designation(pmart_mix,main_effects = "BatchNum",batch_id = "BatchNum")
-mix_nomis_abundance <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS", num_pc = 2)
+mix_nomis_abundance <- bc_nomis(omicsData = pmart_mix, is_cname = "tag", is_val = "IS")
 
 }
 \author{

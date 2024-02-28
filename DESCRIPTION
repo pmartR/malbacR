@@ -36,7 +36,8 @@ Imports:
     JADE,
     corpcor,
     caret,
-    grDevices
+    grDevices,
+    MuMIn
 Remotes:
     github::hafen/trelliscopejs,
     github::dengkuistat/WaveICA_2.0,

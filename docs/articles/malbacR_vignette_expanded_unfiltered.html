@@ -38,12 +38,8 @@
 <li class="nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
 </li>
-<li class="active nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/malbacR_vignette_condensed_filtered.html">malbacR: A Vignette Pertaining to Pre-Filtered Data</a>
-    <a class="dropdown-item" href="../articles/malbacR_vignette_expanded_unfiltered.html">malbacR: A Vignette Pertaining to Unfiltered Data</a>
-  </div>
+<li class="active nav-item">
+  <a class="nav-link" href="../articles/index.html">Articles</a>
 </li>
       </ul>
 <form class="form-inline my-2 my-lg-0" role="search">
@@ -66,7 +62,7 @@
                         <h4 data-toc-skip class="author">Damon Leach,
 Kelly Stratton, Lisa Bramer</h4>
             
-            <h4 data-toc-skip class="date">2023-10-18</h4>
+            <h4 data-toc-skip class="date">2024-02-13</h4>
       
       
       <div class="d-none name"><code>malbacR_vignette_expanded_unfiltered.Rmd</code></div>
@@ -91,7 +87,7 @@ additional data manipulation for batch correction to successfully run.
 For this example, we work with the unfiltered data sets to demonstrate
 how <code>pmartR</code> works with in tandem with
 <code>malbacR</code>.</p>
-<p>Within <code>malbacR</code> there are 11 batch correction
+<p>Within <code>malbacR</code> there are 12 batch correction
 methods:</p>
 <ol style="list-style-type: decimal">
 <li>Range Scaling <span class="citation">(Berg et al. 2006)</span>
@@ -117,13 +113,15 @@ methods:</p>
 </li>
 <li>SERRF <span class="citation">(Fan et al. 2019)</span>
 </li>
+<li>QC-RFSC <span class="citation">(Luan et al. 2018)</span>
+</li>
 </ol>
 <p>First we load in the necessary libraries which is the
 <code>malbacR</code> package itself and <code>pmartR</code> <span class="citation">(Degnan et al. 2023)</span> which <code>malbacR</code>
 works with compatibly. Additionally, <code>ggplot2</code> is loaded for
 some slight graphical manipulations.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">malbacR</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://pmartr.github.io/malbacR/">malbacR</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/pmartR/pmartR" class="external-link">pmartR</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
@@ -152,18 +150,21 @@ implemented within <code>malbacR</code>. Therefore, we simply need to
 load the data.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pmart_amide</span><span class="op">)</span></span></code></pre></div>
-<p>Before running batch correction, we clean the data by log2
-transforming the abundance values, setting a group designation with
+<p>Before running batch correction, we run some pre-processing steps.
+First we specify the group designation of the data with
 <code>group</code> as the <code>main_effects</code> and
-<code>batch</code> as the <code>batch_id</code>. We then normalize the
-data using a global median. All of this is done using the functions
-<code>edata_transform</code>, <code>group_designation</code>, and
+<code>batch</code> as the <code>batch_id</code>.</p>
+<p>Next, we create a version of the data that has been log2 transformed,
+as some methods (but not all methods) require the data to be on a log
+scale. Additionally, we create a normalized version of the data using a
+global median. All of this is done using the functions
+<code>group_designation</code>, <code>edata_transform</code>, and
 <code>normalize_global</code> respectively within <code>pmartR</code>
 <span class="citation">(Degnan et al. 2023)</span>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pmart_amide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">pmart_amide</span>,<span class="st">"log2"</span><span class="op">)</span></span>
-<span><span class="va">pmart_amide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">pmart_amide</span>,main_effects <span class="op">=</span> <span class="st">"group"</span>,batch_id <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">pmart_amide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/normalize_global.html" class="external-link">normalize_global</a></span><span class="op">(</span><span class="va">pmart_amide</span>,subset_fn <span class="op">=</span> <span class="st">"all"</span>,norm_fn <span class="op">=</span> <span class="st">"median"</span>,</span>
+<code class="sourceCode R"><span><span class="va">pmart_amide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">pmart_amide</span>,main_effects <span class="op">=</span> <span class="st">"group"</span>,batch_id <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
+<span><span class="va">pmart_amide_log</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">pmart_amide</span>,<span class="st">"log2"</span><span class="op">)</span></span>
+<span><span class="va">pmart_amide_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/normalize_global.html" class="external-link">normalize_global</a></span><span class="op">(</span><span class="va">pmart_amide_log</span>,subset_fn <span class="op">=</span> <span class="st">"all"</span>,norm_fn <span class="op">=</span> <span class="st">"median"</span>,</span>
 <span>                                apply_norm <span class="op">=</span> <span class="cn">TRUE</span>,backtransform <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -177,28 +178,32 @@ we use the functions <code>bc_range</code>, <code>bc_power</code>, and
 <code>bc_pareto</code> respectively. All three of these functions simply
 simply take the parameter <code>omicsData</code> which is the S3 data
 object that is compatible within <code>pmartR</code>.</p>
+<p>These scaling methods are ran using log2 abundance values that have
+not been normalized.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># range scaling</span></span>
-<span><span class="va">amide_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_range.html">bc_range</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide</span><span class="op">)</span></span>
+<span><span class="va">amide_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_range.html">bc_range</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># power scaling</span></span>
-<span><span class="va">amide_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_power.html">bc_power</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide</span><span class="op">)</span></span>
+<span><span class="va">amide_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_power.html">bc_power</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># pareto scaling</span></span>
-<span><span class="va">amide_pareto</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_pareto.html">bc_pareto</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">amide_pareto</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_pareto.html">bc_pareto</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="qc-based-methods">QC-Based Methods<a class="anchor" aria-label="anchor" href="#qc-based-methods"></a>
 </h5>
 <p>Some batch correction methods rely on Quality Control (QC) samples
-including TIGER, QC-RLSC, and SERRF. To run TIGER (Technical variation
-elImination with ensemble learninG architEctuRe) <span class="citation">(Han et al. 2022)</span>, we run the function
+including TIGER, QC-RLSC, QC-RFSC and SERRF. To run TIGER (Technical
+variation elImination with ensemble learninG architEctuRe) <span class="citation">(Han et al. 2022)</span>, we run the function
 <code>bc_tiger</code> and use the following parameters:
 <code>omicsData</code>, <code>sampletype_cname</code> (a column in
 <code>f_data</code> that specifies which sample is QC sample or not),
 <code>test_val</code> (the value in <code>sampletype_cname</code> that
-specifies a QC sample), and <code>injection_cname</code> (the column in
-<code>f_data</code> that specifies the injection order).</p>
+specifies a QC sample), <code>injection_cname</code> (the column in
+<code>f_data</code> that specifies the injection order), and
+<code>group_cname</code> (the column in the <code>f_data</code> that
+specifies the groups that are used for statistical analyses).</p>
 <p>TIGER requires that there be at least one sample from the QC samples
 to have complete data for every molecule and at least one sample from
 the non-QC samples to have complete data from every molecule <span class="citation">(Han et al. 2022)</span>. For this reason, we include a
@@ -211,11 +216,14 @@ and obtain an S3 object that is capable of working within both
 data is already capable of undergoing TIGER batch correction as there is
 at least one QC sample and at least one non-QC sample with no missing
 values, we show how these functions would work in general.</p>
+<p>TIGER is ran on raw abundance values. After running batch correction,
+we transform the data to a log2 scale.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tigerFilt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tiger_filter.html">tiger_filter</a></span><span class="op">(</span><span class="va">pmart_amide</span>,sampletype_cname <span class="op">=</span> <span class="st">"group"</span>,test_val <span class="op">=</span> <span class="st">"QC"</span><span class="op">)</span></span>
 <span><span class="va">pmart_amideFilt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/apply_tigerFilt.html">apply_tigerFilt</a></span><span class="op">(</span><span class="va">tigerFilt</span>,<span class="va">pmart_amide</span><span class="op">)</span></span>
-<span><span class="va">amide_tiger</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_tiger.html">bc_tiger</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amideFilt</span>,sampletype_cname <span class="op">=</span> <span class="st">"group"</span>,</span>
-<span>                        test_val <span class="op">=</span> <span class="st">"QC"</span>,injection_cname <span class="op">=</span> <span class="st">"Injection_order"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">amide_tiger_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_tiger.html">bc_tiger</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amideFilt</span>,sampletype_cname <span class="op">=</span> <span class="st">"group"</span>,</span>
+<span>                        test_val <span class="op">=</span> <span class="st">"QC"</span>,injection_cname <span class="op">=</span> <span class="st">"Injection_order"</span>,group_cname <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
+<span><span class="va">amide_tiger</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_tiger_abundance</span>, data_scale <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span></span></code></pre></div>
 <p>QC-RLSC (Quality Control - Robust Loess Signal Correction) <span class="citation">(Dunn et al. 2011)</span> can be ran using
 <code>bc_qcrlsc</code> which takes on the parameters
 <code>omicsData</code>, <code>block_cname</code> (a column in
@@ -227,18 +235,23 @@ that specifies which sample is a QC sample or not), <code>qc_val</code>
 the run order of the samples). Additionally, the user can specify the
 <code>missing_thresh</code> (the minimum proportion of observed
 biomolecules for each QC samples), the <code>rsd_thresh</code>, and
-whether the user wants to <code>backtransform</code> the data or
-not.</p>
+whether the user wants to <code>backtransform</code> the data or not.
+Further, users can specify whether they would like to retain the QC
+samples in their final output by specifying <code>keep_qc</code> to be
+TRUE or FALSE.</p>
+<p>QC-RLSC is ran on log2 abundance values that have not been
+normalized.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">amide_qcrlsc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_qcrlsc.html">bc_qcrlsc</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide</span>,block_cname <span class="op">=</span> <span class="st">"batch"</span>,</span>
+<code class="sourceCode R"><span><span class="va">amide_qcrlsc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_qcrlsc.html">bc_qcrlsc</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_log</span>,block_cname <span class="op">=</span> <span class="st">"batch"</span>,</span>
 <span>                          qc_cname <span class="op">=</span> <span class="st">"group"</span>, qc_val <span class="op">=</span> <span class="st">"QC"</span>, order_cname <span class="op">=</span> <span class="st">"Injection_order"</span>,</span>
-<span>                          missing_thresh <span class="op">=</span> <span class="fl">0.5</span>, rsd_thresh <span class="op">=</span> <span class="fl">0.3</span>, backtransform  <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p>The final QC method in <code>malbacR</code> is SERRF (Systematic
-Error Removal using Random Forest) <span class="citation">(Fan et al.
+<span>                          missing_thresh <span class="op">=</span> <span class="fl">0.5</span>, rsd_thresh <span class="op">=</span> <span class="fl">0.3</span>, backtransform  <span class="op">=</span> <span class="cn">FALSE</span>,keep_qc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<p>The next QC method in <code>malbacR</code> is SERRF (Systematic Error
+Removal using Random Forest) <span class="citation">(Fan et al.
 2019)</span> which uses the function <code>bc_serrf</code>. This
 function utilizes the parameters <code>omicsData</code>,
-<code>sampletype_cname</code>, and <code>test_val</code> which have the
-same meanings as those within <code>bc_tiger</code>.</p>
+<code>sampletype_cname</code>, <code>test_val</code>, and
+<code>group_cname</code> which have the same meanings as those within
+<code>bc_tiger</code>.</p>
 <p>One thing to note that SERRF is a method that requires complete
 observations <span class="citation">(Fan et al. 2019)</span>. This means
 we either have to remove molecules with missing values or impute them
@@ -250,11 +263,38 @@ the <code>e_data</code> that has undergone imputation. To then
 officially apply this to the <code>pmartR</code> S3 object, the user
 runs <code>apply_imputation</code>, similar to the procedure of
 <code>tiger_filter</code> and <code>apply_tigerFilt</code>.</p>
+<p>It is important to note that while SERRF is ran on raw abundance
+values, imputation is conducted on log2 data. Therefore, users must
+impute the data using log2 data. Once imputed, users can return to a raw
+abundance value to run batch correction. After running batch correction,
+we log2 transform the data again.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">impObj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/imputation.html">imputation</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide</span><span class="op">)</span></span>
-<span><span class="va">amide_imp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/apply_imputation.html">apply_imputation</a></span><span class="op">(</span>imputeData <span class="op">=</span> <span class="va">impObj</span>, omicsData <span class="op">=</span> <span class="va">pmart_amide</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">impObj</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/imputation.html">imputation</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span></span>
+<span><span class="va">amide_imp_log</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/apply_imputation.html">apply_imputation</a></span><span class="op">(</span><span class="va">impObj</span>,<span class="va">pmart_amide_log</span><span class="op">)</span></span>
+<span><span class="va">amide_imp_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">amide_imp_log</span>,<span class="st">"abundance"</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">amide_serrf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_serrf.html">bc_serrf</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_imp</span>,sampletype_cname <span class="op">=</span> <span class="st">"group"</span>,test_val <span class="op">=</span> <span class="st">"QC"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">amide_serrf_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_serrf.html">bc_serrf</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_imp_raw</span>,sampletype_cname <span class="op">=</span> <span class="st">"group"</span>,test_val <span class="op">=</span> <span class="st">"QC"</span>,group_cname <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
+<span><span class="va">amide_serrf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_serrf_abundance</span>,data_scale <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span></span></code></pre></div>
+<p>The final QC method in <code>malbacR</code> is QC-RFSC (Quality
+Control - Random Forest Signal Correction) <span class="citation">(Luan
+et al. 2018)</span> can be ran using <code>bc_qcrfsc</code> which takes
+on the parameters. QC-RFSC has the following the arguments
+<code>omicsData</code>, <code>qc_cname</code>, <code>qc_val</code>,
+<code>keep_qc</code> and <code>Injection_order</code> which has the same
+meaning as the arguments from QC-RLSC. Additionally, QC-RFSC requires
+<code>group_cname</code> and <code>ntree</code> (the number of trees to
+be created when running random forest).</p>
+<p>Similar to SERRF, QC-RFSC requires complete observations, but is ran
+on raw abundance values <span class="citation">(Luan et al.
+2018)</span>. As with SERRF, we log2 transform the data, impute the
+data, transform back to raw abundance values and then run QC-RFSC. To
+compare results, it is suggested that users then convert data back to
+log2 scale after batch correction.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">amide_qcrfsc_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_qcrfsc.html">bc_qcrfsc</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_imp_raw</span>,qc_cname <span class="op">=</span> <span class="st">"group"</span>,qc_val <span class="op">=</span> <span class="st">"QC"</span>,</span>
+<span>                                    order_cname <span class="op">=</span> <span class="st">"Injection_order"</span>,group_cname <span class="op">=</span> <span class="st">"group"</span>,</span>
+<span>                                    ntree <span class="op">=</span> <span class="fl">500</span>, keep_qc <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">amide_qcrfsc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_qcrfsc_abundance</span>,data_scale <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="other-methods">Other Methods<a class="anchor" aria-label="anchor" href="#other-methods"></a>
@@ -270,9 +310,11 @@ batch ID using <code>group_designation</code> within
 <code>use_groups</code> that defaults to <code>FALSE</code>. If set to
 <code>TRUE</code>, ComBat will run using both batch and group
 information rather than just batch information.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<p>ComBat is ran on log2 transformed data that has also been
+normalized.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># combat batch correction</span></span>
-<span><span class="va">amide_combat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_combat.html">bc_combat</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide</span>, use_groups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">amide_combat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_combat.html">bc_combat</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_norm</span>, use_groups <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>EigenMS uses the function <code>bc_eigenMS</code> and takes the
 parameter <code>omicsData</code>. While this is the only parameter, it
 is also required that the the S3 object has undergone group designation
@@ -281,23 +323,53 @@ using the function <code>group_designation</code> in
 group information needs to be addressed and no <code>batch_id</code> is
 necessary. This is in contrast with <code>bc_combat</code> which
 requires <code>batch_id</code>.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">amide_eigen</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_eigenMS.html">bc_eigenMS</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide</span><span class="op">)</span></span></code></pre></div>
-<p>The final method we demonstrate using the “Amide” data is WaveICA2.0
-which uses the function <code>bc_waveica</code> and incorporates the
-parameters: <code>omicsData</code>, <code>injection_cname</code> (column
-of <code>f_data</code> with injection order information), as well as
-<code>alpha</code> (a tradeoff value between independence of the samples
-and those of the variables in ICA), <code>cutoff</code> (threshold of
-variation explained by the injection order for independent components),
-and <code>K</code> (the maximal component that ICA decomposes). The
-defaults for <code>alpha</code>, <code>cutoff</code>, and <code>K</code>
-are 0, 0.1, and 10 respectively. Like SERRF, WaveICA2.0 requires
-complete observations so we use the imputed data set that has already
-been created <span class="citation">(Deng et al. 2019)</span>.</p>
+<p>EigenMS is ran on data that has been log2 transformed, but has not
+been normalized.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">amide_wave</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_waveica.html">bc_waveica</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_imp</span>, injection_cname <span class="op">=</span> <span class="st">"Injection_order"</span>,</span>
-<span>                         alpha <span class="op">=</span> <span class="fl">0</span>, cutoff <span class="op">=</span> <span class="fl">0.1</span>, K <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">amide_eigen</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_eigenMS.html">bc_eigenMS</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span></span></code></pre></div>
+<p>The final method we demonstrate using the “Amide” data is WaveICA
+which uses the function <code>bc_waveica</code>. Within this function
+users can either run WaveICA or WaveICA2.0 by specifying the parameter
+<code>version</code> to be either “WaveICA” or “WaveICA2.0”. The default
+is “WaveICA”.</p>
+<p>For WaveICA, users need to specify the following parameters:
+<code>omicsData</code>, <code>batch_cname</code> (column of
+<code>f_data</code> with the batch information), as well as
+<code>alpha</code> (a tradeoff value between independence of the samples
+and those of the variables in ICA), <code>cutoff_batch</code> (threshold
+of variation explained by the batch for independent components),
+<code>cutoff_group</code> (threshold of variation explained by the
+groups for independent components), and <code>K</code> (the maximal
+component that ICA decomposes). The defaults for <code>alpha</code>,
+<code>cutoff_injection</code>, <code>K</code>,
+<code>cutoff_batch</code>, and <code>cutoff_group</code> are 0, 10,
+0.05, and 0.05 respectively.</p>
+<p>For WaveICA2.0, users will use the same parameters with the exception
+of specifying the <code>injection_cname</code> (column of
+<code>f_data</code> with the injection order information) rather than
+the <code>batch_cname</code>. Additionally, users will specify the
+<code>cutoff_injection</code> (threshold of variation explained by the
+injection order for independent components) rather than the
+<code>cutoff_batch</code> and <code>cutoff_groups</code> values.</p>
+<p>Like SERRF and QC-RFSC, WaveICA and WaveICA2.0 requires both complete
+observations and raw abundance values <span class="citation">(Deng et
+al. 2019)</span>. Therefore, we use the imputed data set that has
+already been created and follow a similar procedure of log2 transforming
+the data to impute the data, converting back to raw abundance values to
+run batch correction. After batch correction, we log2 transform the data
+back again.</p>
+<p>It is noted that WaveICA can yield negative raw abundance values.
+When converting to a log2 scale, these values will become NA and may
+impact downstream analyses. Users can choose to specify
+<code>negative_to_na</code> to be TRUE and all abundance values that are
+negative will be returned as NA.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">amide_wave_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_waveica.html">bc_waveica</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_imp_raw</span>, batch_cname <span class="op">=</span> <span class="st">"batch"</span>,</span>
+<span>                         version <span class="op">=</span> <span class="st">"WaveICA2.0"</span>,</span>
+<span>                         injection_cname <span class="op">=</span> <span class="st">"Injection_order"</span>,alpha <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>                         cutoff_injection <span class="op">=</span> <span class="fl">0.1</span>, K <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                         negative_to_na <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">amide_wave</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_wave_abundance</span>, data_scale <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -312,33 +384,23 @@ batch. All of this code is run using functions from <code>pmartR</code>
 demonstrating the utility between the two packages. A data set with
 batch effects will tend to produce a PPCA with distinct clusters for
 each batch. A good batch effect correction method will reduce those
-distinct clusters. Using that logic, ComBat, WaveICA2.0, and SERRF
-perform the best within this data set.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pmart_amide</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">pmart_amide</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">amide_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_range</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">amide_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_power</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">amide_pareto</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_pareto</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">amide_tiger</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_tiger</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">amide_qcrlsc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_qcrlsc</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">amide_combat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_combat</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">amide_wave</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_wave</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
-<span><span class="va">amide_serrf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">amide_serrf</span>,main_effects <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span></span>
+distinct clusters. Using that logic, ComBat, EigenMS, WaveICA2.0, and
+SERRF perform the best within this data set.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide_log</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">pmart_amide</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: Unadjusted"</span><span class="op">)</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_range</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_range</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: Range"</span><span class="op">)</span></span>
+<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_power</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_power</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: Power"</span><span class="op">)</span></span>
+<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_pareto</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_pareto</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: Pareto"</span><span class="op">)</span></span>
+<span><span class="va">p5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_tiger</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_tiger</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: TIGER"</span><span class="op">)</span></span>
+<span><span class="va">p6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_qcrlsc</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_qcrlsc</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: QC-RLSC"</span><span class="op">)</span></span>
+<span><span class="va">p7</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_combat</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_combat</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: ComBat"</span><span class="op">)</span></span>
+<span><span class="va">p8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_wave</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_wave</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: WaveICA2.0"</span><span class="op">)</span></span>
+<span><span class="va">p9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_serrf</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_serrf</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: SERRF"</span><span class="op">)</span></span>
+<span><span class="va">p10</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_qcrfsc</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_qcrfsc</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: QC-RFSC"</span><span class="op">)</span></span>
+<span><span class="va">p11</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_eigen</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">amide_eigen</span>,color_by <span class="op">=</span> <span class="st">"batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: EigenMS"</span><span class="op">)</span></span>
 <span></span>
-<span></span>
-<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_amide</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: Unadjusted"</span><span class="op">)</span></span>
-<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_range</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: Range"</span><span class="op">)</span></span>
-<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_power</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: Power"</span><span class="op">)</span></span>
-<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_pareto</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: Pareto"</span><span class="op">)</span></span>
-<span><span class="va">p5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_tiger</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: TIGER"</span><span class="op">)</span></span>
-<span><span class="va">p6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_qcrlsc</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: QC-RLSC"</span><span class="op">)</span></span>
-<span><span class="va">p7</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_combat</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: ComBat"</span><span class="op">)</span></span>
-<span><span class="va">p8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_wave</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: WaveICA2.0"</span><span class="op">)</span></span>
-<span><span class="va">p9</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">amide_serrf</span><span class="op">)</span><span class="op">)</span><span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Amide: SERRF"</span><span class="op">)</span></span>
-<span></span>
-<span></span>
-<span><span class="va">p1</span>;<span class="va">p2</span>;<span class="va">p3</span>;<span class="va">p4</span>;<span class="va">p5</span>;<span class="va">p6</span>;<span class="va">p7</span>;<span class="va">p8</span>;<span class="va">p9</span></span></code></pre></div>
-<p><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-1.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-2.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-3.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-4.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-5.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-6.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-7.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-8.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-13-9.png" width="33%"></p>
+<span><span class="va">p1</span>;<span class="va">p2</span>;<span class="va">p3</span>;<span class="va">p4</span>;<span class="va">p5</span>;<span class="va">p6</span>;<span class="va">p7</span>;<span class="va">p8</span>;<span class="va">p9</span>;<span class="va">p10</span>;<span class="va">p11</span></span></code></pre></div>
+<p><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-1.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-2.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-3.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-4.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-5.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-6.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-7.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-8.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-9.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-10.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-14-11.png" width="33%"></p>
 </div>
 </div>
 <div class="section level2">
@@ -357,25 +419,26 @@ molecule information regarding internal standards/negative controls.</p>
 <p>A <code>pmartR</code> friendly version of the <code>mix</code> data
 is already implemented within <code>malbacR</code>. Therefore, we simply
 need to load the data.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pmart_mix</span><span class="op">)</span></span></code></pre></div>
-<p>Before running batch correction, we need to clean the data by log2
-transforming the abundance values and normalizing the values This data
-set has no missing values. As there is no group information, we specify
-the batch number <code>BatchNum</code> as both the
-<code>main_effects</code> effect and the <code>batch_id</code> as a
-workaround.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pmart_mix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">pmart_mix</span>,<span class="st">"log2"</span><span class="op">)</span></span>
-<span><span class="va">pmart_mix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">pmart_mix</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span>,batch_id <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
-<span><span class="va">pmart_mix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/normalize_global.html" class="external-link">normalize_global</a></span><span class="op">(</span><span class="va">pmart_mix</span>,subset_fn <span class="op">=</span> <span class="st">"all"</span>,norm_fn <span class="op">=</span> <span class="st">"median"</span>,</span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pmart_mix</span><span class="op">)</span></span></code></pre></div>
+<p>Before running batch correction, we set the group designation. As
+there is no group information, we specify the batch number
+<code>BatchNum</code> as both the <code>main_effects</code> effect and
+the <code>batch_id</code> as a workaround. Additionally, we create a
+log2 transformed version of the data as well as a normalized version of
+the data using global median centering. This data set has no missing
+values so imputation will not be necessary for any method.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pmart_mix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">pmart_mix</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span>,batch_id <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
+<span><span class="va">pmart_mix_log</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span><span class="va">pmart_mix</span>,<span class="st">"log2"</span><span class="op">)</span></span>
+<span><span class="va">pmart_mix_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/normalize_global.html" class="external-link">normalize_global</a></span><span class="op">(</span><span class="va">pmart_mix_log</span>,subset_fn <span class="op">=</span> <span class="st">"all"</span>,norm_fn <span class="op">=</span> <span class="st">"median"</span>,</span>
 <span>                                apply_norm <span class="op">=</span> <span class="cn">TRUE</span>,backtransform <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Some methods that have already been demonstrated can be used with
 this data set as well such as range scaling, power scaling, pareto
 scaling, and ComBat. There are no QC samples in this data so QC-RLSC,
-TIGER, and SERRF cannot be ran. In addition, there is no injection order
-information which means that there is insufficient data to run
-WaveICA2.0. Further there is also no group information (as
+QC-RFSC, TIGER, and SERRF cannot be ran. In addition, there is no
+injection order information which means that there is insufficient data
+to run WaveICA2.0. Further there is also no group information (as
 <code>BatchNum</code> was placed as <code>main_effects</code> only as a
 placeholder) and thus EigenMS should not be ran. Additionally, ComBat
 should be only be ran with batch information and not with group
@@ -395,8 +458,10 @@ controls - here we use the tag for internal standards as negative
 control), <code>nc_val</code> (which is the value within
 <code>nc_cname</code> that is the negative control value), and
 <code>k</code> (the number of factors of unwanted variation)</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mix_ruv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_ruvRandom.html">bc_ruvRandom</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span>, nc_cname <span class="op">=</span> <span class="st">"tag"</span>,nc_val <span class="op">=</span> <span class="st">"IS"</span>, k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+<p>RUV-random is ran on log2 transformed data that has not been
+normalized.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mix_ruv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_ruvRandom.html">bc_ruvRandom</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix_log</span>, nc_cname <span class="op">=</span> <span class="st">"tag"</span>,nc_val <span class="op">=</span> <span class="st">"IS"</span>, k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning: Using one column matrices in `filter()` was deprecated in dplyr 1.1.0.</span></span>
 <span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Please use one dimensional logical vectors instead.</span></span>
 <span><span class="co">## <span style="color: #00BBBB;">ℹ</span> The deprecated feature was likely used in the <span style="color: #0000BB;">malbacR</span> package.</span></span>
@@ -408,24 +473,138 @@ control), <code>nc_val</code> (which is the value within
 is NOMIS which uses the function <code>bc_nomis</code> and takes the
 parameters <code>omicsData</code>, <code>is_cname</code> (column in
 <code>e_meta</code> which has the information on internal standards),
-<code>is_val</code> (the value within <code>is_cname</code> that is the
-value for internal standards) and <code>num_pc</code> (number of
-principal components for NOMIS to consider).</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mix_nomis</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_nomis.html">bc_nomis</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span>, is_cname <span class="op">=</span> <span class="st">"tag"</span>, is_val <span class="op">=</span> <span class="st">"IS"</span>, num_pc <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning in Ops.factor(left, right): '&lt;' not meaningful for factors</span></span></code></pre>
+and <code>is_val</code> (the value within <code>is_cname</code> that is
+the value for internal standards)</p>
+<p>NOMIS is ran on raw abundance values. As there no missing values,
+data does not need to be imputed. However, if there were missing values,
+a similar procedure as to what was done with SERRF with the amide data,
+would be required.</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mix_nomis_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_nomis.html">bc_nomis</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span>, is_cname <span class="op">=</span> <span class="st">"tag"</span>, is_val <span class="op">=</span> <span class="st">"IS"</span><span class="op">)</span></span>
+<span><span class="va">mix_nomis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_nomis_abundance</span>, data_scale <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level5">
 <h5 id="other-methods-1">Other Methods<a class="anchor" aria-label="anchor" href="#other-methods-1"></a>
 </h5>
 <p>We also run applicable methods that were used in the “Amide” data set
-such as range scaling, pareto scaling, power scaling, and ComBat.</p>
+such as range scaling, pareto scaling, power scaling, and ComBat.
+Additionally, WaveICA can be ran (just not WaveICA2.0) as it relies on
+batch information rather than injection order.</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mix_combat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_combat.html">bc_combat</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span><span class="op">)</span></span>
-<span><span class="va">mix_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_range.html">bc_range</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span><span class="op">)</span></span>
-<span><span class="va">mix_pareto</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_pareto.html">bc_pareto</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span><span class="op">)</span></span>
-<span><span class="va">mix_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_power.html">bc_power</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">mix_combat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_combat.html">bc_combat</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix_norm</span><span class="op">)</span></span>
+<span><span class="va">mix_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_range.html">bc_range</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix_log</span><span class="op">)</span></span>
+<span><span class="va">mix_pareto</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_pareto.html">bc_pareto</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix_log</span><span class="op">)</span></span>
+<span><span class="va">mix_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_power.html">bc_power</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix_log</span><span class="op">)</span></span>
+<span><span class="va">mix_waveica_abundance</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bc_waveica.html">bc_waveica</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span>,batch_cname <span class="op">=</span> <span class="st">"BatchNum"</span>,</span>
+<span>                          version <span class="op">=</span> <span class="st">"WaveICA"</span>,cutoff_batch <span class="op">=</span> <span class="fl">0.05</span>, cutoff_group <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>                          negative_to_na <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## ######Decomposition 1 ########</span></span>
+<span><span class="co">## ######Decomposition 2 ########</span></span>
+<span><span class="co">## ######Decomposition 3 ########</span></span>
+<span><span class="co">## ######Decomposition 4 ########</span></span>
+<span><span class="co">## ######Decomposition 5 ########</span></span>
+<span><span class="co">## ######Decomposition 6 ########</span></span>
+<span><span class="co">## ######Decomposition 7 ########</span></span>
+<span><span class="co">## ######Decomposition 8 ########</span></span>
+<span><span class="co">## ######Decomposition 9 ########</span></span>
+<span><span class="co">## ######Decomposition 10 ########</span></span>
+<span><span class="co">## ######Decomposition 11 ########</span></span>
+<span><span class="co">## ######Decomposition 12 ########</span></span>
+<span><span class="co">## ######Decomposition 13 ########</span></span>
+<span><span class="co">## ######Decomposition 14 ########</span></span>
+<span><span class="co">## ######Decomposition 15 ########</span></span>
+<span><span class="co">## ######Decomposition 16 ########</span></span>
+<span><span class="co">## ######Decomposition 17 ########</span></span>
+<span><span class="co">## ######Decomposition 18 ########</span></span>
+<span><span class="co">## ######Decomposition 19 ########</span></span>
+<span><span class="co">## ######Decomposition 20 ########</span></span>
+<span><span class="co">## ######Decomposition 21 ########</span></span>
+<span><span class="co">## ######Decomposition 22 ########</span></span>
+<span><span class="co">## ######Decomposition 23 ########</span></span>
+<span><span class="co">## ######Decomposition 24 ########</span></span>
+<span><span class="co">## ######Decomposition 25 ########</span></span>
+<span><span class="co">## ######Decomposition 26 ########</span></span>
+<span><span class="co">## ######Decomposition 27 ########</span></span>
+<span><span class="co">## ######Decomposition 28 ########</span></span>
+<span><span class="co">## ######Decomposition 29 ########</span></span>
+<span><span class="co">## ######Decomposition 30 ########</span></span>
+<span><span class="co">## ######Decomposition 31 ########</span></span>
+<span><span class="co">## ######Decomposition 32 ########</span></span>
+<span><span class="co">## ######Decomposition 33 ########</span></span>
+<span><span class="co">## ######Decomposition 34 ########</span></span>
+<span><span class="co">## ######Decomposition 35 ########</span></span>
+<span><span class="co">## ######Decomposition 36 ########</span></span>
+<span><span class="co">## ######Decomposition 37 ########</span></span>
+<span><span class="co">## ######Decomposition 38 ########</span></span>
+<span><span class="co">## ######Decomposition 39 ########</span></span>
+<span><span class="co">## ######Decomposition 40 ########</span></span>
+<span><span class="co">## ######Decomposition 41 ########</span></span>
+<span><span class="co">## ######Decomposition 42 ########</span></span>
+<span><span class="co">## ######Decomposition 43 ########</span></span>
+<span><span class="co">## ######Decomposition 44 ########</span></span>
+<span><span class="co">## ######Decomposition 45 ########</span></span>
+<span><span class="co">## ######Decomposition 46 ########</span></span>
+<span><span class="co">## ######### ICA 1 #############</span></span>
+<span><span class="co">## [1] "Removing 2 components with P value less than 0.05"</span></span>
+<span><span class="co">## ######### ICA 2 #############</span></span>
+<span><span class="co">## [1] "Removing 20 components with P value less than 0.05"</span></span>
+<span><span class="co">## ######### ICA 3 #############</span></span>
+<span><span class="co">## [1] "Removing 17 components with P value less than 0.05"</span></span>
+<span><span class="co">## ######### ICA 4 #############</span></span>
+<span><span class="co">## [1] "Removing 1 components with P value less than 0.05"</span></span>
+<span><span class="co">## ######### ICA 5 #############</span></span>
+<span><span class="co">## [1] "Removing 13 components with P value less than 0.05"</span></span>
+<span><span class="co">## ######### ICA 6 #############</span></span>
+<span><span class="co">## [1] "Removing 12 components with P value less than 0.05"</span></span>
+<span><span class="co">## ######Reconstruction 1 ########</span></span>
+<span><span class="co">## ######Reconstruction 2 ########</span></span>
+<span><span class="co">## ######Reconstruction 3 ########</span></span>
+<span><span class="co">## ######Reconstruction 4 ########</span></span>
+<span><span class="co">## ######Reconstruction 5 ########</span></span>
+<span><span class="co">## ######Reconstruction 6 ########</span></span>
+<span><span class="co">## ######Reconstruction 7 ########</span></span>
+<span><span class="co">## ######Reconstruction 8 ########</span></span>
+<span><span class="co">## ######Reconstruction 9 ########</span></span>
+<span><span class="co">## ######Reconstruction 10 ########</span></span>
+<span><span class="co">## ######Reconstruction 11 ########</span></span>
+<span><span class="co">## ######Reconstruction 12 ########</span></span>
+<span><span class="co">## ######Reconstruction 13 ########</span></span>
+<span><span class="co">## ######Reconstruction 14 ########</span></span>
+<span><span class="co">## ######Reconstruction 15 ########</span></span>
+<span><span class="co">## ######Reconstruction 16 ########</span></span>
+<span><span class="co">## ######Reconstruction 17 ########</span></span>
+<span><span class="co">## ######Reconstruction 18 ########</span></span>
+<span><span class="co">## ######Reconstruction 19 ########</span></span>
+<span><span class="co">## ######Reconstruction 20 ########</span></span>
+<span><span class="co">## ######Reconstruction 21 ########</span></span>
+<span><span class="co">## ######Reconstruction 22 ########</span></span>
+<span><span class="co">## ######Reconstruction 23 ########</span></span>
+<span><span class="co">## ######Reconstruction 24 ########</span></span>
+<span><span class="co">## ######Reconstruction 25 ########</span></span>
+<span><span class="co">## ######Reconstruction 26 ########</span></span>
+<span><span class="co">## ######Reconstruction 27 ########</span></span>
+<span><span class="co">## ######Reconstruction 28 ########</span></span>
+<span><span class="co">## ######Reconstruction 29 ########</span></span>
+<span><span class="co">## ######Reconstruction 30 ########</span></span>
+<span><span class="co">## ######Reconstruction 31 ########</span></span>
+<span><span class="co">## ######Reconstruction 32 ########</span></span>
+<span><span class="co">## ######Reconstruction 33 ########</span></span>
+<span><span class="co">## ######Reconstruction 34 ########</span></span>
+<span><span class="co">## ######Reconstruction 35 ########</span></span>
+<span><span class="co">## ######Reconstruction 36 ########</span></span>
+<span><span class="co">## ######Reconstruction 37 ########</span></span>
+<span><span class="co">## ######Reconstruction 38 ########</span></span>
+<span><span class="co">## ######Reconstruction 39 ########</span></span>
+<span><span class="co">## ######Reconstruction 40 ########</span></span>
+<span><span class="co">## ######Reconstruction 41 ########</span></span>
+<span><span class="co">## ######Reconstruction 42 ########</span></span>
+<span><span class="co">## ######Reconstruction 43 ########</span></span>
+<span><span class="co">## ######Reconstruction 44 ########</span></span>
+<span><span class="co">## ######Reconstruction 45 ########</span></span>
+<span><span class="co">## ######Reconstruction 46 ########</span></span></code></pre>
 <pre><code><span><span class="co">## Warning in Ops.factor(left, right): '&lt;' not meaningful for factors</span></span></code></pre>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mix_waveica</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/edata_transform.html" class="external-link">edata_transform</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_waveica_abundance</span>, data_scale <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level3">
@@ -433,27 +612,20 @@ such as range scaling, pareto scaling, power scaling, and ComBat.</p>
 </h3>
 <p>Similar to the previous data set, we can compare the PPCA plots
 between the unadjusted and adjusted data sets. Using the same
-qualitative logic as with the “Amide” data set, it appears that NOMIS
-performs the best based on the PPCA clustering.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">pmart_mix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">pmart_mix</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
-<span><span class="va">mix_range</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">mix_range</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
-<span><span class="va">mix_power</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">mix_power</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
-<span><span class="va">mix_pareto</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">mix_pareto</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
-<span><span class="va">mix_combat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">mix_combat</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
-<span><span class="va">mix_ruv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">mix_ruv</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
-<span><span class="va">mix_nomis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/group_designation.html" class="external-link">group_designation</a></span><span class="op">(</span><span class="va">mix_nomis</span>,main_effects <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span></span>
+qualitative logic as with the “Amide” data set, it appears that NOMIS,
+ComBat, and WaveICA performs well based on the PPCA clustering.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix_log</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">pmart_mixFilt</span>,color_by <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: Unadjusted"</span><span class="op">)</span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_ruv</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">mix_ruv</span>,color_by <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: ruv-Random"</span><span class="op">)</span></span>
+<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_nomis</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">mix_nomis</span>,color_by <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: NOMIS"</span><span class="op">)</span></span>
+<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_combat</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">mix_combat</span>,color_by <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: ComBat"</span><span class="op">)</span></span>
+<span><span class="va">p5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_range</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">mix_range</span>,color_by <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: Range"</span><span class="op">)</span></span>
+<span><span class="va">p6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_power</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">mix_power</span>,color_by <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: Power"</span><span class="op">)</span></span>
+<span><span class="va">p7</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_pareto</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">mix_pareto</span>,color_by <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: Pareto"</span><span class="op">)</span></span>
+<span><span class="va">p8</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_waveica</span><span class="op">)</span>,omicsData <span class="op">=</span> <span class="va">mix_pareto</span>,color_by <span class="op">=</span> <span class="st">"BatchNum"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: WaveICA"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">pmart_mix</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: Unadjusted"</span><span class="op">)</span></span>
-<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_ruv</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: RUV-random"</span><span class="op">)</span></span>
-<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_nomis</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: NOMIS"</span><span class="op">)</span></span>
-<span><span class="va">p4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_combat</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: ComBat"</span><span class="op">)</span></span>
-<span><span class="va">p5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_range</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: Range"</span><span class="op">)</span></span>
-<span><span class="va">p6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_power</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: Power"</span><span class="op">)</span></span>
-<span><span class="va">p7</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/pmartR/man/dim_reduction.html" class="external-link">dim_reduction</a></span><span class="op">(</span>omicsData <span class="op">=</span> <span class="va">mix_pareto</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_discrete.html" class="external-link">scale_colour_discrete</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"Batch"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Mix: Pareto"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">p1</span>;<span class="va">p2</span>;<span class="va">p3</span>;<span class="va">p4</span>;<span class="va">p5</span>;<span class="va">p6</span>;<span class="va">p7</span></span></code></pre></div>
-<p><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-20-1.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-20-2.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-20-3.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-20-4.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-20-5.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-20-6.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-20-7.png" width="33%"></p>
+<span><span class="va">p1</span>;<span class="va">p2</span>;<span class="va">p3</span>;<span class="va">p4</span>;<span class="va">p5</span>;<span class="va">p6</span>;<span class="va">p7</span>;<span class="va">p8</span></span></code></pre></div>
+<p><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-21-1.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-21-2.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-21-3.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-21-4.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-21-5.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-21-6.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-21-7.png" width="33%"><img src="malbacR_vignette_expanded_unfiltered_files/figure-html/unnamed-chunk-21-8.png" width="33%"></p>
 </div>
 <div class="section level3 unnumbered">
 <h3 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -514,6 +686,12 @@ Architecture.”</span> <em>Briefings in Bioinformatics</em> 23 (2). <a href="ht
 Karpievitch, Yuliya V., Sonja B. Nikolic, Richard Wilson, James E.
 Sharman, and Lindsay M. Edwards. 2014. <span>“Metabolomics Data
 Normalization with EigenMS.”</span> <em>PLOS ONE</em> 9 (12). <a href="https://doi.org/10.1371/journal.pone.0116221" class="external-link">https://doi.org/10.1371/journal.pone.0116221</a>.
+</div>
+<div id="ref-qcrfsc_paper" class="csl-entry">
+Luan, Hemi, Fenfen Ji, Yu Chen, and Zongwei Cai. 2018.
+<span>“statTarget: A Streamlined Tool for Signal Drift Correction and
+Interpretations of Quantitative Mass Spectrometry-Based Omics
+Data.”</span> <em>Analytica Chimica Acta</em> 1036: 66–72. <a href="https://doi.org/10.1016/j.aca.2018.08.002" class="external-link">https://doi.org/10.1016/j.aca.2018.08.002</a>.
 </div>
 <div id="ref-combat_paper" class="csl-entry">
 Müller, Christian, Arne Schillert, Caroline Röthmeier, David-Alexandre

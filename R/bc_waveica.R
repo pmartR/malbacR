@@ -23,6 +23,9 @@
 #'  should be between 0 and 1, defaults to 0.05 (to be used for WaveICA)
 #' @param K maximal component that ICA decomposes, defaults to 20 (though recommendation for K = 10
 #'  when using "WaveICA2.0")
+#' @param negative_to_na logical argument that if set to TRUE (default), any raw abundance values that 
+#' are calculated as a negative value are converted to NA values, this is important if downstream analyses
+#' require log2 transformed data
 #'  
 #' @return Object of same class as omicsData that has been undergone
 #'   WaveICA normalization
@@ -37,14 +40,15 @@
 #' amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 #' amide_imp_abundance <- edata_transform(amide_imp,"abundance")
 #' amide_wave <- bc_waveica(omicsData = amide_imp_abundance, injection_cname = "Injection_order",
-#'                          version = "WaveICA2.0",alpha = 0, cutoff_injection = 0.1, K = 10)
+#'                          version = "WaveICA2.0",alpha = 0, cutoff_injection = 0.1, K = 10,
+#'                          negative_to_na = TRUE)
 #' 
 #' @author Damon Leach
 #' 
 #' @export
 #' 
 bc_waveica <- function(omicsData,batch_cname = NULL, injection_cname = NULL, version = "WaveICA", alpha = 0, cutoff_injection = 0.1, K = 20,
-                       cutoff_batch = 0.05, cutoff_group = 0.05){
+                       cutoff_batch = 0.05, cutoff_group = 0.05,negative_to_na = TRUE){
   # run through checks ---------------------------------------------------------
   
   # check that omicsData is of appropriate class #
@@ -177,6 +181,11 @@ bc_waveica <- function(omicsData,batch_cname = NULL, injection_cname = NULL, ver
     stop ("WaveICA requires no missing observations. Remove molecules with missing samples.")
   }
   
+  # negative to na must be a logical argument
+  if(class(negative_to_na) != "logical"){
+    stop (paste("The input parameter negative_to_na must be a logical argument (TRUE or FALSE)."))
+  }
+  
   # run the WaveICA2.0 calculations -------------------------------------------------
   # retain seed after  running code
   if (!exists(".Random.seed")) runif(1)
@@ -216,6 +225,9 @@ bc_waveica <- function(omicsData,batch_cname = NULL, injection_cname = NULL, ver
   edat_colNames <- colnames(omicsData$e_data)
   colnames(edatWAVE) <- edat_colNames
   rownames(edatWAVE) <- NULL
+  if(negative_to_na){
+    edatWAVE[edatWAVE < 0] <- NA
+  }
   
   # move back into pmart object ------------------------------------------------
   

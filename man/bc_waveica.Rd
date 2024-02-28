@@ -13,7 +13,8 @@ bc_waveica(
   cutoff_injection = 0.1,
   K = 20,
   cutoff_batch = 0.05,
-  cutoff_group = 0.05
+  cutoff_group = 0.05,
+  negative_to_na = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ should be between 0 and 1, defaults to 0.05 (to be used for WaveICA)}
 \item{cutoff_group}{threshold of the variation explained by the group for independent components,
 should be between 0 and 1, defaults to 0.05 (to be used for WaveICA)}
 
+\item{negative_to_na}{logical argument that if set to TRUE (default), any raw abundance values that 
+are calculated as a negative value are converted to NA values, this is important if downstream analyses
+require log2 transformed data}
+
 \item{batach_cname}{character string giving the name of the colum in omicsData$f_data
 that contains the batch information of the samples (to be used for WaveICA)}
 }
@@ -64,7 +69,8 @@ impObj <- imputation(omicsData = pmart_amide)
 amide_imp <- apply_imputation(imputeData = impObj, omicsData = pmart_amide)
 amide_imp_abundance <- edata_transform(amide_imp,"abundance")
 amide_wave <- bc_waveica(omicsData = amide_imp_abundance, injection_cname = "Injection_order",
-                         version = "WaveICA2.0",alpha = 0, cutoff_injection = 0.1, K = 10)
+                         version = "WaveICA2.0",alpha = 0, cutoff_injection = 0.1, K = 10,
+                         negative_to_na = TRUE)
 
 }
 \author{
