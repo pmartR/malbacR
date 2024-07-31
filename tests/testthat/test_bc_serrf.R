@@ -96,7 +96,7 @@ test_that('bc_serrf returns the correct data frame and attributes',{
   # what if we have all QC samples from a lipid and batch be the same value
   qc_batch1_samples = mdataImp$f_data$SampleID[mdataImp$f_data$BatchNum == 1 & mdataImp$f_data$QC == "QC.NIST"]
   mdataImp2 = mdataImp
-  mdataImp2$e_data[1,qc_batch1_samples] <- 88264.9
+  mdataImp2$e_data[,qc_batch1_samples] <- 90000
   expect_error(bc_serrf(omicsData = mdataImp2, sampletype_cname = "Sex",test_val = "QC.NIST",
                         group_cname = "Age"),
                "At least one molecule has completely identical abundance values for all samples")
