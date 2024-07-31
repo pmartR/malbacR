@@ -138,6 +138,31 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   edataQC <- edata %>% dplyr::select(-dplyr::all_of(nonqc_sampNames))
   edata_noQC <- edata %>% dplyr::select(-dplyr::all_of(qc_sampNames))
   
+  # obtain the batch information
+  batch_info <- attributes(attr(omicsData,"group_DF"))$batch_id
+  batch_sampleID <- which(colnames(batch_info) == pmartR::get_fdata_cname(omicsData))
+  batchName <- colnames(batch_info)[-batch_sampleID]
+  
+  # now check the duplicate abundances
+  numUniqueCheck = omicsData$e_data %>% tibble::remove_rownames() %>%
+    tibble::column_to_rownames(var = edata_cname) %>%
+    t() %>% data.frame() %>%
+    tibble::rownames_to_column(var = fdata_cname) %>%
+    dplyr::left_join(omicsData$f_data[c(fdata_cname,batchName,sampletype_cname)], by = fdata_cname) %>%
+    dplyr::filter(!!as.symbol(sampletype_cname) == test_val) %>%
+    dplyr::select(-!!as.symbol(sampletype_cname)) %>%
+    tibble::column_to_rownames(var = fdata_cname) %>%
+    dplyr::group_by(!!as.symbol(batchName)) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(goodToGo = purrr::map_int(data, function(dat){
+      numUnique = apply(dat,2,function(d){length(unique(d))})
+      minNumUnique = min(numUnique,na.rm=T)
+    }))
+  
+  if(min(numUniqueCheck$goodToGo) == 1){
+    stop(paste0("At least one molecule has completely identical abundance values for all samples (of value test_val) pertaining to the same batch which will lead to downstream errors with bc_serrf"))
+  }
+  
   # now add in fdata information to the data for QC and non QC samples
   edataQC_t <- edataQC %>%
     t() %>%
@@ -154,10 +179,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   testing_dat <- fdata %>%
     dplyr::right_join(edata_noQC_t, by = fdata_cname)
   
-  # obtain the batch information
-  batch_info <- attributes(attr(omicsData,"group_DF"))$batch_id
-  batch_sampleID <- which(colnames(batch_info) == pmartR::get_fdata_cname(omicsData))
-  batchName <- colnames(batch_info)[-batch_sampleID]
+  
   
   # list the columns of fdata to remove
   badfdata <- colnames(fdata)
