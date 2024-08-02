@@ -138,6 +138,11 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   edataQC <- edata %>% dplyr::select(-dplyr::all_of(nonqc_sampNames))
   edata_noQC <- edata %>% dplyr::select(-dplyr::all_of(qc_sampNames))
   
+  # obtain the batch information
+  batch_info <- attributes(attr(omicsData,"group_DF"))$batch_id
+  batch_sampleID <- which(colnames(batch_info) == pmartR::get_fdata_cname(omicsData))
+  batchName <- colnames(batch_info)[-batch_sampleID]
+  
   # now add in fdata information to the data for QC and non QC samples
   edataQC_t <- edataQC %>%
     t() %>%
@@ -154,10 +159,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
   testing_dat <- fdata %>%
     dplyr::right_join(edata_noQC_t, by = fdata_cname)
   
-  # obtain the batch information
-  batch_info <- attributes(attr(omicsData,"group_DF"))$batch_id
-  batch_sampleID <- which(colnames(batch_info) == pmartR::get_fdata_cname(omicsData))
-  batchName <- colnames(batch_info)[-batch_sampleID]
+  
   
   # list the columns of fdata to remove
   badfdata <- colnames(fdata)
@@ -256,8 +258,6 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
       tst <- tst %>%
         tibble::column_to_rownames(var = fdata_cname)
       
-      
-      
       # create empty data matrix for new normalization methods
       tbl_colnames <- colnames(tst)
       norm_dat <- matrix(nrow=nrow(tst),ncol=ncol(tst))
@@ -273,7 +273,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
                               envir = environment())
       
       # for each molecule normalize the data
-      nd <- foreach::foreach(i = 1:ncol(norm_dat),.combine = cbind) %dopar% {
+      nd <- try(foreach::foreach(i = 1:ncol(norm_dat),.combine = cbind) %dopar% {
         # find what variables we are working with num_cor
         num_cor = 10
         for(b in 1:length(unique(batch_info[[batchName]]))){
@@ -312,10 +312,19 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
         # find which columns correspond to that variable
         trn_current_var_col = which(colnames(trn) == current_var)
         tst_current_var_col = which(colnames(tst) == current_var)
+        
+        # numUnique = apply(trn[,sel_var],2,function(d){length(unique(d))})
+        # minNumUnique = min(numUnique,na.rm = T)
+        # if(minNumUnique == 1){
+        #   stop (paste0("At least one molecule has the exact same abundance values for all test_val samples from the same batch which 
+        #                leads to downstream issues with SERRF. Please use a different batch correction method."))
+        # }
+        
         # find the y response that molecule
         train_data_y = scale(trn[,trn_current_var_col],scale = F)
         # scale the QC training data
         train_data_x = apply(trn[,sel_var],2,scale)
+        
         train_data = data.frame(train_data_y,train_data_x )
         og_train_data_colnames = c("y",colnames(norm_dat)[sel_var])
         # scale the testing data
@@ -356,14 +365,24 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
         serrf_bnq = norm_vals_bnq/(median(norm_vals_bnq,na.rm=T)/abund_val_nq_median)
         
         norm_dat[,trn_current_var_col] <- serrf_bnq
-      }
+      },silent = TRUE)
       
       # now make it a dataframe and add back in rownname information
-      norm_dat <- data.frame(nd)
-      colnames(norm_dat) = colnames(tst)
-      rownames(norm_dat) <- rownames(tst)
+      if(!"try-error" %in% class(nd)){
+        norm_dat <- data.frame(nd)
+        colnames(norm_dat) = colnames(tst)
+        rownames(norm_dat) <- rownames(tst)
+      } else {
+        norm_dat = "duplicate_value_error"
+      }
+      
       return(norm_dat)
     }))
+  
+  # if any of the batches have the duplicate_value_error we print that out instead of continuing
+  if(any(dat_nest$norm_data == "duplicate_value_error")){
+    stop(paste0("At least one molecule has completely identical abundance values for all samples (of value test_val) pertaining to the same batch which will lead to downstream errors with bc_serrf."))
+  }
   
   # combine all the different batch normalizations together
   all_dat <- do.call("rbind", dat_nest$norm_data)
@@ -371,7 +390,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
     all_dat[i,is.na(all_dat[i,])] = rnorm(sum(is.na(all_dat[i,])), mean = min(all_dat[i,!is.na(all_dat[i,])], na.rm = TRUE), sd = sd(all_dat[i,!is.na(all_dat[i,])])*0.1)
     all_dat[i,all_dat[i,]<0] = runif(1) * min(all_dat[i,all_dat[i,]>0], na.rm = TRUE)
   }
-
+  
   # put back into molecule x sample order
   edata_serrf <- all_dat %>%
     t() %>%
@@ -447,7 +466,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
                                   e_meta = emet,
                                   emeta_cname = emeta_cname)
   }
-
+  
   # Update the data_info attribute.
   attr(pmartObj, 'data_info') <- pmartR:::set_data_info(
     e_data = pmartObj$e_data,
@@ -480,7 +499,7 @@ bc_serrf <- function(omicsData, sampletype_cname, test_val,group_cname){
                   test_val = test_val,
                   group_cname = group_cname)
   )
-
+  
   # update normalization as well 
   attributes(pmartObj)$data_info$norm_info <- list(
     is_normalized = TRUE,
