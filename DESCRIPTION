@@ -43,7 +43,6 @@ Imports:
 Remotes:
     github::hafen/trelliscopejs,
     github::dengkuistat/WaveICA_2.0,
-    github::pmartR/pmartR,
     github::pmartR/pmartRdata
 Suggests:
     rmarkdown,
