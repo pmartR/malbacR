@@ -207,7 +207,7 @@ bc_qcrlsc <- function(omicsData,block_cname,qc_cname,qc_val,
       calc = purrr::map(qcEdata,function(edat){
         num_not_NA = rowSums(!is.na(edat))
         whichBad = which(num_not_NA < 6)
-        badMolecules = omicsData$e_data[whichBad,][[pmartR::get_edata_cname(omicsData)]]
+        badMolecules = filt_qc_data1[whichBad,][[pmartR::get_edata_cname(omicsData)]]
         return(badMolecules)
       }),
       begin_end_QC = purrr::map(batchDat,function(bd){
